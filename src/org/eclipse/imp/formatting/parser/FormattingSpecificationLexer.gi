@@ -34,6 +34,22 @@
         any
         DoubleLiteral
         NUMBER
+        SINGLE_LINE_COMMENT
+        COMMA
+        PLUS 
+        MINUS
+        SEMICOLON
+        ASSIGN
+        LEFTPAREN
+        RIGHTPAREN
+        LEFTBRACE
+        RIGHTBRACE
+        TIMES
+        DIVIDE
+        GREATER
+        LESS
+        EQUAL
+        NOTEQUAL
 %End
 
 %Terminals

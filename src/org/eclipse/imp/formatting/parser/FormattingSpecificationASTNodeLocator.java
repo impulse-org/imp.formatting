@@ -1,13 +1,12 @@
 package org.eclipse.imp.formatting.parser;
 
-import org.eclipse.imp.formatting.parser.Ast.ASTNode;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-
+import org.eclipse.imp.formatting.parser.Ast.ASTNode;
+import org.eclipse.imp.formatting.parser.Ast.AbstractVisitor;
 import org.eclipse.imp.parser.IASTNodeLocator;
 
-import org.eclipse.imp.formatting.parser.Ast.AbstractVisitor;
 
 public class FormattingSpecificationASTNodeLocator implements IASTNodeLocator {
 	private final ASTNode[] fNode = new ASTNode[1];

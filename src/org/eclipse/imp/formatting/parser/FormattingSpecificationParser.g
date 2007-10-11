@@ -54,7 +54,7 @@
 %End
 
 %Rules
-    specification ::= begin_formatter language rules example end_formatter
+    specification ::= begin_formatter  language rules example end_formatter
     language ::= begin_language IDENTIFIER end_language
     rules ::= begin_rules rulelist end_rules
     rulelist$$rule ::= $empty
