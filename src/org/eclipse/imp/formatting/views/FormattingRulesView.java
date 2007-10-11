@@ -1,5 +1,11 @@
 package org.eclipse.imp.formatting.views;
 
+import java.io.File;
+import java.util.Iterator;
+
+import org.eclipse.imp.formatting.spec.FormattingRule;
+import org.eclipse.imp.formatting.spec.FormattingSpecification;
+import org.eclipse.imp.formatting.spec.FormattingSpecificationParser;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -35,8 +41,20 @@ public class FormattingRulesView extends ViewPart {
 	public void setFocus() {
 		rules.setFocus();
 	}
+	
+	
 
 	public void createPartControl(Composite parent) {
+		FormattingSpecificationParser p = new FormattingSpecificationParser();
+		FormattingSpecification spec;
+		
+		try {
+			 spec = p.parse(new File("test.fmt"));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
+		
 		SashForm pane = new SashForm(parent, SWT.NONE);
 		FillLayout parentLayout = new FillLayout(SWT.VERTICAL);
 		parent.setLayout(parentLayout);
@@ -57,20 +75,23 @@ public class FormattingRulesView extends ViewPart {
 		Label rulesLabel = new Label(rules, SWT.BOLD | SWT.CENTER);
 		rulesLabel.setText("Formatting rules");
 		
-		for (int i = 1; i < 20; i++) {
+		Iterator<FormattingRule> iter = spec.ruleIterator();
+		
+		while (iter.hasNext()) {
+			FormattingRule rule = iter.next();
 			Text t = new Text(rules, SWT.BORDER | SWT.V_SCROLL | SWT.WRAP);
 			RowData data = new RowData();
 			data.height = t.getLineHeight() * 5;
 			data.width = 400;
 			t.setLayoutData(data);
-			t.setText("H [ \"" + i + "\" \"" + i + "\" ]");
+			t.setText(rule.getBoxString());
 		}
 		
 		rules.setSize(rules.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		scroll.setMinSize(rules.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
 		example = new Text(pane, SWT.V_SCROLL | SWT.WRAP | SWT.BORDER);
-		example.setText("This is the example text");
+		example.setText(spec.getExample());
 		example.setToolTipText("Example source code");
 	}
 }

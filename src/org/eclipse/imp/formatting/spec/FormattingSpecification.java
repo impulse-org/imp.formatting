@@ -1,5 +1,6 @@
 package org.eclipse.imp.formatting.spec;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -17,11 +18,15 @@ public class FormattingSpecification {
 	private String example;
 	
 	public FormattingSpecification(String language) {
+		this();
 		this.language = language;
+	}
+	
+	public FormattingSpecification() {
 		this.rules = new LinkedList<FormattingRule>();
 		this.example = "";
 	}
-	
+
 	public void addRule(FormattingRule rule) {
 		rules.add(rule);
 	}
@@ -34,7 +39,11 @@ public class FormattingSpecification {
 		return rules;
 	}
 	
-	public String getExampe() {
+	public Iterator<FormattingRule> ruleIterator() {
+		return rules.listIterator();
+	}
+	
+	public String getExample() {
 		return example;
 	}
 	
@@ -44,5 +53,9 @@ public class FormattingSpecification {
 	
 	public String getLanguage() {
 		return language;
+	}
+	
+	public void setLanguage(String language) {
+		this.language = language;
 	}
 }
