@@ -32,6 +32,8 @@
         
         IDENTIFIER 
         any
+        DoubleLiteral
+        NUMBER
 %End
 
 %Terminals
