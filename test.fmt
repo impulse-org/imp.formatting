@@ -1,0 +1,26 @@
+<formatter>
+<language>X10</language>
+<rules>
+<rule>
+<box>
+V [
+H [ "class" "TestClass" {"
+I [
+H [  "public" H hs=0 [ "TestClass" "()" ] { ]
+I [
+H [  H hs=0 ["System" "." "err" "." "println" ] "( "\"This is a test class\"" ")" ";" ]
+]
+  "}"
+]
+"}"
+]
+</box>
+</rule>
+</rules>
+<example>
+class TestClass {
+  public TestClass() {
+    System.err.println("This is a test class");
+  }
+}
+</example>

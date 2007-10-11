@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="Formatting"
+            id="org.eclipse.imp.formatting">
+      </category>
+      <view
+            name="Formatting Rules"
+            icon="icons/sample.gif"
+            category="org.eclipse.imp.formatting"
+            class="org.eclipse.imp.formatting.views.FormattingRulesView"
+            id="org.eclipse.imp.formatting.views.FormattingRulesView">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.ui.resourcePerspective">
+         <view
+               ratio="0.5"
+               moveable="true"
+               showTitle="true"
+               relative="org.eclipse.ui.views.TaskList"
+               closeable="false"
+               visible="true"
+               relationship="right"
+               id="org.eclipse.imp.formatting.views.FormattingRulesView">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.imp.runtime.languageDescription">
+      <language
+            extensions="fmt"
+            description="A list of formatting rules"
+            language="FormattingSpecification">
+      </language>
+   </extension>
+   <extension
+         id="org.eclipse.imp.formatting.parserWrapper"
+         name="FormattingSpecification Parser Wrapper"
+         point="org.eclipse.imp.runtime.parser">
+      <parserWrapper
+            class="org.eclipse.imp.formatting.parser.FormattingSpecificationParseController"
+            language="FormattingSpecification">
+      </parserWrapper>
+   </extension>
+   <extension
+         id="org.eclipse.imp.formatting.builder"
+         name="FormattingSpecification builder"
+         point="org.eclipse.core.resources.builders">
+      <builder>
+         <run
+               class="org.eclipse.imp.formatting.builders.FormattingSpecificationBuilder">
+            <parameter
+                  name="foo"
+                  value="bar">
+            </parameter>
+         </run>
+      </builder>
+   </extension>
+   <extension
+         id="imp.nature"
+         name="FormattingSpecification Nature"
+         point="org.eclipse.core.resources.natures">
+      <builder
+            id="org.eclipse.imp.formatting.org.eclipse.imp.formatting.builder">
+      </builder>
+      <runtime>
+         <run
+               class="org.eclipse.imp.formatting.builders.FormattingSpecificationNature">
+         </run>
+      </runtime>
+   </extension>
+   <extension
+         id="org.eclipse.imp.formatting.builder.problem"
+         name="FormattingSpecification Error"
+         point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.problemmarker">
+      </super>
+   </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            objectClass="org.eclipse.jdt.core.IJavaProject"
+            adaptable="false"
+            nameFilter="*"
+            id="FormattingSpecification.imp.projectContextMenu">
+         <action
+               label="Enable FormattingSpecification Builder"
+               tooltip="Enable the FormattingSpecification builder for this project"
+               class="org.eclipse.imp.formatting.actions.EnableNature"
+               id="FormattingSpecification.imp.actions.enableNatureAction">
+         </action>
+      </objectContribution>
+   </extension>
+
+</plugin>
