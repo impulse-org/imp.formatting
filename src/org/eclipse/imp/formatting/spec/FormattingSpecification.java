@@ -16,6 +16,7 @@ public class FormattingSpecification {
 	private String language;
 	private List<FormattingRule> rules;
 	private String example;
+	private Object exampleAst;
 	
 	public FormattingSpecification(String language) {
 		this();
@@ -57,5 +58,13 @@ public class FormattingSpecification {
 	
 	public void setLanguage(String language) {
 		this.language = language;
+	}
+
+	public Object getExampleAst() {
+		return exampleAst;
+	}
+	
+	public void setExampleAst(Object object) {
+		this.exampleAst = object;
 	}
 }

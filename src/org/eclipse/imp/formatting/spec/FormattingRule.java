@@ -1,6 +1,5 @@
 package org.eclipse.imp.formatting.spec;
 
-import lpg.runtime.IAst;
 import org.eclipse.imp.box.parser.Ast.IBox;
 
 /**
@@ -14,7 +13,7 @@ import org.eclipse.imp.box.parser.Ast.IBox;
  */
 public class FormattingRule {
 	/* the pattern is the part to be matched */
-	private IAst patternAst;
+	private Object patternAst;
 	private String patternString;
 	
 	/* the box is the part to be constructed when a match has succeeded */
@@ -37,12 +36,12 @@ public class FormattingRule {
 		this.BoxAst = BoxAst;
 	}
 	
-	public IAst getPatternAst() {
+	public Object getPatternAst() {
 		return patternAst;
 	}
 	
-	public void setPatternAst(IAst patternAst) {
-		this.patternAst = patternAst;
+	public void setPatternAst(Object object) {
+		this.patternAst = object;
 	}
 	
 	public String getPatternString() {

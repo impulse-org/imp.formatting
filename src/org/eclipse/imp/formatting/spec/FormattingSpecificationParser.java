@@ -12,12 +12,14 @@ import lpg.runtime.IMessageHandler;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.imp.box.builders.BoxFactory;
 import org.eclipse.imp.box.parser.BoxParseController;
 import org.eclipse.imp.box.parser.Ast.IBox;
 import org.eclipse.imp.builder.BuilderUtils;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.x10dt.ui.parser.ParseController;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -93,8 +95,20 @@ public class FormattingSpecificationParser extends DefaultHandler {
 		} else if (qName.equals("box")) {
 			tmpRule.setBoxString(tmpContents);
 			tmpRule.setBoxAst(parseBox(tmpContents));
+			try {
+				tmpRule.setPatternString(BoxFactory.box2text(tmpContents));
+				tmpRule.setPatternAst(parseObject(tmpRule.getPatternString()));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		} else if (qName.equals("example")) {
 			spec.setExample(tmpContents);
+			spec.setExampleAst(parseObject(tmpContents));
 		} else if (qName.equals("language")) {
 			spec.setLanguage(tmpContents);
 		}
@@ -117,6 +131,20 @@ public class FormattingSpecificationParser extends DefaultHandler {
 		IProgressMonitor monitor = new NullProgressMonitor();
 		parseController.initialize(file.getProjectRelativePath(), project, handler);
 		return (IBox) parseController.parse(boxString, false, monitor);
+	}
+	
+	public Object parseObject(String objectString) {
+		IParseController parseController = new ParseController();
+		IProgressMonitor monitor = new NullProgressMonitor();
+		IMessageHandler handler = new IMessageHandler() {
+
+			public void handleMessage(int errorCode, int[] msgLocation, int[] errorLocation, String filename, String[] errorInfo) {
+				System.err.println("error during object language parsing: " + errorInfo);
+			}
+			
+		};
+		parseController.initialize(file.getProjectRelativePath(), project, handler);
+		return parseController.parse(objectString, false, monitor);
 	}
 
 }
