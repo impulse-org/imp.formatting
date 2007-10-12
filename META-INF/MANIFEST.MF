@@ -6,14 +6,17 @@ Bundle-Version: 1.0.0
 Bundle-Activator: org.eclipse.imp.formatting.Activator
 Bundle-Vendor: jurgen.vinju@gmail.com
 Bundle-Localization: plugin
-Require-Bundle: org.eclipse.ui,
+Require-Bundle: org.eclipse.ui.workbench.texteditor,
  org.eclipse.core.runtime,
+ org.eclipse.ui,
  org.eclipse.core.resources,
  org.eclipse.imp.runtime,
  lpg.runtime,
  org.eclipse.jface.text,
  org.eclipse.jdt.core,
  org.eclipse.platform.source,
- com.ibm.watson.smapifier,
- org.eclipse.imp.box
+ org.eclipse.imp.box,
+ org.eclipse.ui.editors,
+ org.eclipse.ui.ide,
+ org.eclipse.ui.workbench.texteditor
 Eclipse-LazyStart: true

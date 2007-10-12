@@ -3,35 +3,17 @@
 <plugin>
 
    <extension
-         point="org.eclipse.ui.views">
-      <category
-            name="Formatting"
-            id="org.eclipse.imp.formatting">
-      </category>
-      <view
-            name="Formatting Rules"
+         point="org.eclipse.ui.editors">
+      <editor
+            name="Formatting Specification Editor"
+            extensions="fsp"
             icon="icons/sample.gif"
-            category="org.eclipse.imp.formatting"
-            class="org.eclipse.imp.formatting.views.FormattingRulesView"
-            id="org.eclipse.imp.formatting.views.FormattingRulesView">
-      </view>
+            contributorClass="org.eclipse.imp.formatting.editor.FormattingRulesEditorContributor"
+            class="org.eclipse.imp.formatting.editor.FormattingRulesEditor"
+            id="org.eclipse.imp.formatting.editor.FormattingRulesEditor">
+      </editor>
    </extension>
-   <extension
-         point="org.eclipse.ui.perspectiveExtensions">
-      <perspectiveExtension
-            targetID="org.eclipse.ui.resourcePerspective">
-         <view
-               ratio="0.5"
-               moveable="true"
-               showTitle="true"
-               relative="org.eclipse.ui.views.TaskList"
-               closeable="false"
-               visible="true"
-               relationship="right"
-               id="org.eclipse.imp.formatting.views.FormattingRulesView">
-         </view>
-      </perspectiveExtension>
-   </extension>
+   
    <extension
          point="org.eclipse.imp.runtime.languageDescription">
       <language
@@ -40,15 +22,7 @@
             language="FormattingSpecification">
       </language>
    </extension>
-   <extension
-         id="org.eclipse.imp.formatting.parserWrapper"
-         name="FormattingSpecification Parser Wrapper"
-         point="org.eclipse.imp.runtime.parser">
-      <parserWrapper
-            class="org.eclipse.imp.formatting.parser.FormattingSpecificationParseController"
-            language="FormattingSpecification">
-      </parserWrapper>
-   </extension>
+   
    <extension
          id="org.eclipse.imp.formatting.builder"
          name="FormattingSpecification builder"
@@ -99,5 +73,5 @@
          </action>
       </objectContribution>
    </extension>
-
+  
 </plugin>
