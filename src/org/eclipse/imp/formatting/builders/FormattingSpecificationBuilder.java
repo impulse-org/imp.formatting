@@ -148,10 +148,10 @@ public class FormattingSpecificationBuilder extends BuilderBase {
 	protected void runParserForCompiler(final IFile file,
 			IProgressMonitor monitor) {
 		try {
-			Parser p = new Parser();
+			Parser p = new Parser(file);
 
 			try {
-				p.parse(file);
+				p.parse();
 			} catch (Exception e) {
 				// TODO change exception type and do something serious with this
 			}
