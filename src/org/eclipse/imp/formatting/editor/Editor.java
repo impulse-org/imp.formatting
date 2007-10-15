@@ -11,6 +11,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.formatting.spec.Parser;
 import org.eclipse.imp.formatting.spec.Rule;
 import org.eclipse.imp.formatting.spec.Specification;
+import org.eclipse.imp.formatting.spec.Unparser;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -32,6 +33,7 @@ import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.MultiPageEditorPart;
+import org.xml.sax.SAXException;
 
 /**
  * This is the start of a prototype generic formatting tool for IMP.
@@ -68,9 +70,14 @@ public class Editor extends MultiPageEditorPart implements
 	
 	public boolean modified = false;
 
+	private Parser parser;
+
+	private ScrolledComposite scroll;
+
 	public Editor() {
 		super();
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
+		
 	}
 
 	void createPlainEditor() {
@@ -88,29 +95,27 @@ public class Editor extends MultiPageEditorPart implements
 	public void createStructuredEditor() {
 		Composite parent = new Composite(getContainer(), SWT.NONE);
 		parent.setLayout(new FillLayout());
-		
-		String editorText = editor.getDocumentProvider().getDocument(
-				editor.getEditorInput()).get();
-		Parser p = new Parser();
-		spec = null;
-		IFile file = ((IFileEditorInput) getEditorInput()).getFile();
-		System.err.println("Ifile: " + file);
-		
-		try {
-			spec = p.parse(file, editorText);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 
-		ScrolledComposite scroll = new ScrolledComposite(parent, SWT.BORDER
-				| SWT.V_SCROLL);
+		scroll = new ScrolledComposite(parent, SWT.BORDER
+						| SWT.V_SCROLL);
 		scroll.setExpandHorizontal(false);
 		scroll.setExpandVertical(true);
 
 		rules = new Composite(scroll, SWT.NONE);
 		scroll.setContent(rules);
 
+		int index = addPage(parent);
+		setPageText(index, "Rules");
+	}
+
+	private void updateRuleEditor() {
+		if (rules != null) {
+		  rules.dispose();
+		}
+		
+		rules = new Composite(scroll, SWT.NONE);
+		scroll.setContent(rules);
+		
 		RowLayout rulesLayout = new RowLayout(SWT.VERTICAL);
 		rulesLayout.spacing = 4;
 		rulesLayout.fill = true;
@@ -122,44 +127,95 @@ public class Editor extends MultiPageEditorPart implements
 			Iterator<Rule> iter = spec.ruleIterator();
 
 			while (iter.hasNext()) {
-				Rule rule = iter.next();
-				Text t = new Text(rules, SWT.BORDER | SWT.V_SCROLL | SWT.WRAP);
-				t.addModifyListener(modifyListener);
+				final Rule rule = iter.next();
+				final Text t = new Text(rules, SWT.BORDER | SWT.V_SCROLL | SWT.WRAP);
+				t.addModifyListener(new ModifyListener() {
+					public void modifyText(ModifyEvent e) {
+						String boxString = t.getText();
+						try {
+							parser.parseBoxAndObject(boxString, rule);
+							modified = true;
+							firePropertyChange(PROP_DIRTY);
+						} catch (SAXException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+					}
+				});
 				RowData data = new RowData();
 				data.height = t.getLineHeight() * 5;
 				data.width = 700;
 				t.setLayoutData(data);
 				t.setText(rule.getBoxString());
 			}
-		}
+			
 
-		rules.setSize(rules.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		scroll.setMinSize(rules.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		
-		int index = addPage(parent);
-		setPageText(index, "Rules");
+			rules.setSize(rules.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+			scroll.setMinSize(rules.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		}
 	}
 	
 	public void createExampleViewer() {
 		Composite parent = new Composite(getContainer(), SWT.NONE);
 		parent.setLayout(new FillLayout());
 		example = new Text(parent, SWT.V_SCROLL | SWT.WRAP | SWT.BORDER);
-		example.addModifyListener(modifyListener);
 		
-		if (spec != null) {
-		  example.setText(spec.getExample());
-		}
+		example.addModifyListener(new ModifyListener() {
+			/* we parse the example, and when it is syntactically
+			 * correct, the model is updated.
+			 */
+			public void modifyText(ModifyEvent e) {
+				String objectString = example.getText();
+				Object ast = parser.parseObject(objectString);
+				if (ast != null) {
+					System.err.println("example parsed ok");
+					spec.setExample(objectString);
+					spec.setExampleAst(ast);
+					modified = true;
+					firePropertyChange(PROP_DIRTY);
+				}
+			}
+		});
+		
 		example.setToolTipText("Example source code");
 		
 		int index = addPage(parent);
 		setPageText(index, "Example");
 	}
 
+	protected void updateExample() {
+		if (spec != null) {
+			  example.setText(spec.getExample());
+		}
+	}
+	
+	protected void updateStructuredEditor() {
+		
+	}
+	
 	protected void createPages() {
 		createPlainEditor();
 		createStructuredEditor();
 		createExampleViewer();
+		
+		updateModelFromFile();
+		updateRuleEditor();
+		updateExample();
+		
 		modified = false;
+	}
+
+	private void updateModelFromFile() {
+		try {
+			parser = new Parser(((IFileEditorInput) getEditorInput()).getFile());
+			spec = null;
+			String editorText = editor.getDocumentProvider().getDocument(
+					editor.getEditorInput()).get();
+			spec = parser.parse(editorText);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public void dispose() {
@@ -169,7 +225,32 @@ public class Editor extends MultiPageEditorPart implements
 
 	public void doSave(IProgressMonitor monitor) {
 		System.err.println("saving!");
-		getEditor(0).doSave(monitor);
+		if (editor.isDirty()) {
+			editor.doSave(monitor);
+			updateModelFromFile();
+			updateRuleEditor();
+			updateExample();
+		}
+		else if (modified) {
+			Unparser u = new Unparser();
+			String newText = u.unparse(spec);
+			
+			System.err.println("unparsed text:" + newText);
+			
+			// TODO: this is probably to slow for large
+			// specifications. Other editors like the plugin.xml
+			// editor constantly update parts of the underlying
+			// xml file. This comes with a lot of complexity though.
+			editor.getDocumentProvider().getDocument(
+					editor.getEditorInput()).set(newText);
+			editor.doSave(monitor);
+			updateModelFromFile();
+			updateRuleEditor();
+			updateExample();
+		}
+		
+		modified = false;
+		firePropertyChange(PROP_DIRTY);
 	}
 
 	public void doSaveAs() {

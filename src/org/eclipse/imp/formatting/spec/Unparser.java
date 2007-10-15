@@ -20,11 +20,16 @@ public class Unparser {
 	public String unparse(Specification spec) {
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		
+		System.err.println("spec language: " + spec.getLanguage());
+		System.err.println("spec example:" + spec.getExample());
+		
 		try {
 		DocumentBuilder db = dbf.newDocumentBuilder();
 
 		dom = db.newDocument();
-		addSpec(spec, dom.createElement("formatter"));
+		Element root = dom.createElement("formatter");
+		addSpec(spec, root);
+		dom.appendChild(root);
 		return printToString(dom);
 
 		}catch(ParserConfigurationException pce) {
@@ -47,6 +52,8 @@ public class Unparser {
 			serializer.serialize(dom);
 			
 			String result = output.toString();
+			
+			System.err.println("result of output:" + result);
 			output.close();
 			return result;
 		} catch(IOException ie) {

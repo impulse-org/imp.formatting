@@ -19,6 +19,7 @@ import org.eclipse.imp.builder.BuilderUtils;
 import org.eclipse.imp.java.matching.PolyglotASTAdapter;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
+import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.x10dt.ui.parser.ParseController;
 import org.xml.sax.Attributes;
@@ -38,16 +39,17 @@ public class Parser extends DefaultHandler {
 
 	private ISourceProject project;
 	private IFile file;
-
-	public Specification parse(IFile file, String string) throws Exception {
-		this.project = ModelFactory.open(file.getProject());
+	
+	public Parser(IFile file) throws ModelException {
 		this.file = file;
+		this.project = ModelFactory.open(file.getProject());
+	}
+
+	public Specification parse(String string) throws Exception {
 		return parse(new InputSource(new StringReader(string)));
 	}
 
-	public Specification parse(IFile file) throws Exception {
-		this.project = ModelFactory.open(file.getProject());
-		this.file = file;
+	public Specification parse() throws Exception {
 		return parse(new InputSource(new StringReader(BuilderUtils
 				.getFileContents(file))));
 	}
@@ -102,24 +104,27 @@ public class Parser extends DefaultHandler {
 		if (qName.equals("rule")) {
 			spec.addRule(tmpRule);
 		} else if (qName.equals("box")) {
-			tmpRule.setBoxString(tmpContents);
-			tmpRule.setBoxAst(parseBox(tmpContents));
-			try {
-				tmpRule.setPatternString(BoxFactory.box2text(tmpContents));
-				tmpRule.setPatternAst(parseObject(tmpRule.getPatternString()));
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
+			parseBoxAndObject(tmpContents, tmpRule);
 		} else if (qName.equals("example")) {
 			spec.setExample(tmpContents);
 			spec.setExampleAst(parseObject(tmpContents));
 		} else if (qName.equals("language")) {
 			spec.setLanguage(tmpContents);
+		}
+	}
+
+	public void parseBoxAndObject(String boxString, Rule rule) throws SAXException {
+		rule.setBoxString(boxString);
+		rule.setBoxAst(parseBox(boxString));
+		try {
+			rule.setPatternString(BoxFactory.box2text(boxString));
+			rule.setPatternAst(parseObject(rule.getPatternString()));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
