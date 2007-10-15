@@ -6,6 +6,18 @@ import java.util.List;
 
 import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
 
+/**
+ * This class maps an arbitrary AST to a Box term in String form.
+ * It works by recursively applying a set of rules to an AST.
+ * The rules have AST patterns that are matched against the actual AST,
+ * if the match succeeds, the rule has a reference to a Box pattern
+ * for building up the Box term. If there is no rule for a certain part
+ * of an AST, this transformer picks a default Box representation.
+ * 
+ * It is guaranteed that this transformer produces a fully valid Box term.
+ * @author jurgenv
+ *
+ */
 public class Transformer {
 	private Specification spec;
 

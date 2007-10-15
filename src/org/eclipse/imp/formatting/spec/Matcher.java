@@ -2,6 +2,12 @@ package org.eclipse.imp.formatting.spec;
 
 import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
 
+/*
+ * This class implements a simple AST pattern matcher. A pattern is
+ * an AST with some placeholders. Currently, the placeholders are not
+ * implemented, so in fact this matcher implements AST equality and
+ * nothing more.
+ */
 public class Matcher {
 
 	private IASTAdapter adapter;
