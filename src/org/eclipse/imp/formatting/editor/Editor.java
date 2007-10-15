@@ -8,13 +8,14 @@ import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.formatting.spec.Parser;
 import org.eclipse.imp.formatting.spec.Rule;
 import org.eclipse.imp.formatting.spec.Specification;
-import org.eclipse.imp.formatting.spec.Parser;
-import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
@@ -57,6 +58,15 @@ public class Editor extends MultiPageEditorPart implements
 	protected Text example;
 
 	private Specification spec;
+	
+	private ModifyListener modifyListener = new ModifyListener() {
+		public void modifyText(ModifyEvent e) {
+			modified = true;
+			firePropertyChange(PROP_DIRTY);
+		}
+	};
+	
+	public boolean modified = false;
 
 	public Editor() {
 		super();
@@ -114,6 +124,7 @@ public class Editor extends MultiPageEditorPart implements
 			while (iter.hasNext()) {
 				Rule rule = iter.next();
 				Text t = new Text(rules, SWT.BORDER | SWT.V_SCROLL | SWT.WRAP);
+				t.addModifyListener(modifyListener);
 				RowData data = new RowData();
 				data.height = t.getLineHeight() * 5;
 				data.width = 700;
@@ -133,6 +144,7 @@ public class Editor extends MultiPageEditorPart implements
 		Composite parent = new Composite(getContainer(), SWT.NONE);
 		parent.setLayout(new FillLayout());
 		example = new Text(parent, SWT.V_SCROLL | SWT.WRAP | SWT.BORDER);
+		example.addModifyListener(modifyListener);
 		
 		if (spec != null) {
 		  example.setText(spec.getExample());
@@ -147,6 +159,7 @@ public class Editor extends MultiPageEditorPart implements
 		createPlainEditor();
 		createStructuredEditor();
 		createExampleViewer();
+		modified = false;
 	}
 
 	public void dispose() {
@@ -155,6 +168,7 @@ public class Editor extends MultiPageEditorPart implements
 	}
 
 	public void doSave(IProgressMonitor monitor) {
+		System.err.println("saving!");
 		getEditor(0).doSave(monitor);
 	}
 
@@ -200,5 +214,9 @@ public class Editor extends MultiPageEditorPart implements
 				}
 			});
 		}
+	}
+	
+	public boolean isDirty() {
+		return editor.isDirty() || modified;
 	}
 }
