@@ -12,23 +12,23 @@ import java.util.List;
  * @author Jurgen Vinju
  *
  */
-public class FormattingSpecification {
+public class Specification {
 	private String language;
-	private List<FormattingRule> rules;
+	private List<Rule> rules;
 	private String example;
 	private Object exampleAst;
 	
-	public FormattingSpecification(String language) {
+	public Specification(String language) {
 		this();
 		this.language = language;
 	}
 	
-	public FormattingSpecification() {
-		this.rules = new LinkedList<FormattingRule>();
+	public Specification() {
+		this.rules = new LinkedList<Rule>();
 		this.example = "";
 	}
 
-	public void addRule(FormattingRule rule) {
+	public void addRule(Rule rule) {
 		rules.add(rule);
 	}
 	
@@ -40,7 +40,7 @@ public class FormattingSpecification {
 		return rules;
 	}
 	
-	public Iterator<FormattingRule> ruleIterator() {
+	public Iterator<Rule> ruleIterator() {
 		return rules.listIterator();
 	}
 	

@@ -11,7 +11,7 @@ import org.eclipse.imp.box.parser.Ast.IBox;
  * @author Jurgen Vinju
  *
  */
-public class FormattingRule {
+public class Rule {
 	/* the pattern is the part to be matched */
 	private Object patternAst;
 	private String patternString;

@@ -16,6 +16,7 @@ import org.eclipse.imp.box.builders.BoxFactory;
 import org.eclipse.imp.box.parser.BoxParseController;
 import org.eclipse.imp.box.parser.Ast.IBox;
 import org.eclipse.imp.builder.BuilderUtils;
+import org.eclipse.imp.java.matching.PolyglotASTAdapter;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.parser.IParseController;
@@ -25,44 +26,52 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-public class FormattingSpecificationParser extends DefaultHandler {
+public class Parser extends DefaultHandler {
 
 	static protected SAXParserFactory spf = SAXParserFactory.newInstance();
 
-	protected FormattingSpecification spec;
+	protected Specification spec;
 
-	protected FormattingRule tmpRule;
+	protected Rule tmpRule;
 
 	protected String tmpContents;
 
 	private ISourceProject project;
 	private IFile file;
 
-	public FormattingSpecification parse(IFile file, String string) throws Exception {
+	public Specification parse(IFile file, String string) throws Exception {
 		this.project = ModelFactory.open(file.getProject());
 		this.file = file;
 		return parse(new InputSource(new StringReader(string)));
 	}
 
-	public FormattingSpecification parse(IFile file) throws Exception {
+	public Specification parse(IFile file) throws Exception {
 		this.project = ModelFactory.open(file.getProject());
 		this.file = file;
 		return parse(new InputSource(new StringReader(BuilderUtils
 				.getFileContents(file))));
 	}
 
-	protected FormattingSpecification parse(InputSource input) throws Exception {
+	protected Specification parse(InputSource input) throws Exception {
 		// TODO: throw some sensible exception
 
 		try {
 			SAXParser sp = spf.newSAXParser();
 			sp.parse(input, this);
 
+//			 TODO remove testing code
+			Transformer t = new Transformer(spec, new PolyglotASTAdapter());
+			String boxString = t.transformToBox(spec.getExampleAst());
+			System.err.println("example box: " + boxString);
+			spec.setExample(BoxFactory.box2text(boxString));
+			
 			if (spec != null) {
 				return spec;
 			} else {
 				throw new Exception("Parsing of " + input + " failed");
 			}
+			
+			
 
 		} catch (SAXException se) {
 			throw new Exception("Parsing of " + input + " failed", se);
@@ -76,9 +85,9 @@ public class FormattingSpecificationParser extends DefaultHandler {
 	public void startElement(String uri, String localName, String qName,
 			Attributes attributes) throws SAXException {
 		if (qName.equals("formatter")) {
-			spec = new FormattingSpecification();
+			spec = new Specification();
 		} else if (qName.equals("rule")) {
-			tmpRule = new FormattingRule();
+			tmpRule = new Rule();
 		} else if (qName.equals("box")) {
 			tmpContents = "";
 		} else if (qName.equals("example")) {

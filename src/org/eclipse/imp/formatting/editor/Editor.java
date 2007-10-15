@@ -8,9 +8,9 @@ import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.imp.formatting.spec.FormattingRule;
-import org.eclipse.imp.formatting.spec.FormattingSpecification;
-import org.eclipse.imp.formatting.spec.FormattingSpecificationParser;
+import org.eclipse.imp.formatting.spec.Rule;
+import org.eclipse.imp.formatting.spec.Specification;
+import org.eclipse.imp.formatting.spec.Parser;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.SWT;
@@ -48,7 +48,7 @@ import org.eclipse.ui.part.MultiPageEditorPart;
  * the user can see the effect of the specification.
  */
 
-public class FormattingRulesEditor extends MultiPageEditorPart implements
+public class Editor extends MultiPageEditorPart implements
 		IResourceChangeListener {
 	protected TextEditor editor;
 
@@ -56,9 +56,9 @@ public class FormattingRulesEditor extends MultiPageEditorPart implements
 
 	protected Text example;
 
-	private FormattingSpecification spec;
+	private Specification spec;
 
-	public FormattingRulesEditor() {
+	public Editor() {
 		super();
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
 	}
@@ -81,7 +81,7 @@ public class FormattingRulesEditor extends MultiPageEditorPart implements
 		
 		String editorText = editor.getDocumentProvider().getDocument(
 				editor.getEditorInput()).get();
-		FormattingSpecificationParser p = new FormattingSpecificationParser();
+		Parser p = new Parser();
 		spec = null;
 		IFile file = ((IFileEditorInput) getEditorInput()).getFile();
 		System.err.println("Ifile: " + file);
@@ -109,10 +109,10 @@ public class FormattingRulesEditor extends MultiPageEditorPart implements
 		rules.setLayout(rulesLayout);
 
 		if (spec != null) {
-			Iterator<FormattingRule> iter = spec.ruleIterator();
+			Iterator<Rule> iter = spec.ruleIterator();
 
 			while (iter.hasNext()) {
-				FormattingRule rule = iter.next();
+				Rule rule = iter.next();
 				Text t = new Text(rules, SWT.BORDER | SWT.V_SCROLL | SWT.WRAP);
 				RowData data = new RowData();
 				data.height = t.getLineHeight() * 5;

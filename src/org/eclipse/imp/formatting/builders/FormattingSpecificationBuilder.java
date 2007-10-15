@@ -15,7 +15,7 @@ import org.eclipse.imp.builder.BuilderBase;
 import org.eclipse.imp.builder.BuilderUtils;
 import org.eclipse.imp.builder.MarkerCreator;
 import org.eclipse.imp.formatting.Activator;
-import org.eclipse.imp.formatting.spec.FormattingSpecificationParser;
+import org.eclipse.imp.formatting.spec.Parser;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
@@ -148,7 +148,7 @@ public class FormattingSpecificationBuilder extends BuilderBase {
 	protected void runParserForCompiler(final IFile file,
 			IProgressMonitor monitor) {
 		try {
-			FormattingSpecificationParser p = new FormattingSpecificationParser();
+			Parser p = new Parser();
 
 			try {
 				p.parse(file);

@@ -8,8 +8,8 @@
             name="Formatting Specification Editor"
             extensions="fsp"
             icon="icons/sample.gif"
-            contributorClass="org.eclipse.imp.formatting.editor.FormattingRulesEditorContributor"
-            class="org.eclipse.imp.formatting.editor.FormattingRulesEditor"
+            contributorClass="org.eclipse.imp.formatting.editor.Contributor"
+            class="org.eclipse.imp.formatting.editor.Editor"
             id="org.eclipse.imp.formatting.editor.FormattingRulesEditor">
       </editor>
    </extension>

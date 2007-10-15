@@ -18,13 +18,13 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
  * Responsible for the redirection of global actions to the active editor.
  * Multi-page contributor replaces the contributors for the individual editors in the multi-page editor.
  */
-public class FormattingRulesEditorContributor extends MultiPageEditorActionBarContributor {
+public class Contributor extends MultiPageEditorActionBarContributor {
 	private IEditorPart activeEditorPart;
 	private Action sampleAction;
 	/**
 	 * Creates a multi-page contributor.
 	 */
-	public FormattingRulesEditorContributor() {
+	public Contributor() {
 		super();
 		createActions();
 	}
