@@ -1,11 +1,8 @@
 package org.eclipse.imp.formatting.spec;
 
-import java.text.BreakIterator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
-import lpg.runtime.IAst;
 
 import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
 

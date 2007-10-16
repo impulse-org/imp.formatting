@@ -10,17 +10,18 @@ import javax.xml.parsers.SAXParserFactory;
 import lpg.runtime.IMessageHandler;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.imp.box.builders.BoxFactory;
 import org.eclipse.imp.box.parser.BoxParseController;
 import org.eclipse.imp.box.parser.Ast.IBox;
 import org.eclipse.imp.builder.BuilderUtils;
+import org.eclipse.imp.builder.MarkerCreator;
+import org.eclipse.imp.formatting.Activator;
 import org.eclipse.imp.java.matching.PolyglotASTAdapter;
-import polyglot.ast.Node;
-import polyglot.util.Position;
-import x10.parser.X10Parser.JPGPosition;
-
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.model.ModelFactory.ModelException;
@@ -31,7 +32,12 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import polyglot.ast.Node;
+import polyglot.util.Position;
+
 public class Parser extends DefaultHandler {
+
+	private static final String PROBLEM_TYPE = "org.eclipse.imp.formatting.parsing";
 
 	static protected SAXParserFactory spf = SAXParserFactory.newInstance();
 
@@ -46,7 +52,7 @@ public class Parser extends DefaultHandler {
 	private IFile file;
 
 	private Transformer transformer;
-
+	
 	public Parser(IFile file) throws ModelException {
 		this.file = file;
 		this.project = ModelFactory.open(file.getProject());
@@ -64,6 +70,8 @@ public class Parser extends DefaultHandler {
 				return ((Position) node.position()).endOffset() - ((Position) node.position()).offset() + 1;
 			}
 		});
+		
+		
 	}
 
 	public Specification parse() throws Exception {
@@ -154,7 +162,18 @@ public class Parser extends DefaultHandler {
 
 			public void handleMessage(int errorCode, int[] msgLocation,
 					int[] errorLocation, String filename, String[] errorInfo) {
-				System.err.println("error during box parsing: " + errorInfo);
+				
+				try {
+					IMarker marker = file.createMarker(PROBLEM_TYPE);
+					marker.setAttribute(IMarker.MESSAGE, "box term is invalid");
+					marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+					marker.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_HIGH);
+				} catch (CoreException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				Activator.getInstance().writeErrorMsg("box term is invalid");
 			}
 
 		};
@@ -171,8 +190,7 @@ public class Parser extends DefaultHandler {
 
 			public void handleMessage(int errorCode, int[] msgLocation,
 					int[] errorLocation, String filename, String[] errorInfo) {
-				System.err.println("error during object language parsing: "
-						+ errorInfo);
+				Activator.getInstance().writeErrorMsg("not a valid sentence in the object language");
 			}
 
 		};

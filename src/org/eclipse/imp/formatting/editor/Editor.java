@@ -71,6 +71,10 @@ public class Editor extends MultiPageEditorPart implements
 
 	}
 
+	public Specification getModel() {
+		return model;
+	}
+	
 	void createPlainEditor() {
 		try {
 			editor = new TextEditor();
@@ -94,7 +98,7 @@ public class Editor extends MultiPageEditorPart implements
 		int index = addPage(parent);
 		setPageText(index, "Rules");
 	}
-
+	
 	private void updateRuleEditor() {
 		Composite rules = new Composite(scroll, SWT.NONE);
 		scroll.setContent(rules);
