@@ -65,10 +65,13 @@ public class Parser extends DefaultHandler {
 			SAXParser sp = spf.newSAXParser();
 			sp.parse(input, this);
 
-			
+			// TODO: move this outside of the parser
 			if (spec != null) {
 				String boxString = transformer.transformToBox(spec.getExampleAst());
-				spec.setExample(BoxFactory.box2text(boxString));
+				
+				if (boxString != null) {
+				  spec.setExample(BoxFactory.box2text(boxString));
+				}
 				
 				return spec;
 			} else {
