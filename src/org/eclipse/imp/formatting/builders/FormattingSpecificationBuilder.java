@@ -1,29 +1,15 @@
 package org.eclipse.imp.formatting.builders;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.imp.builder.BuilderBase;
-import org.eclipse.imp.builder.BuilderUtils;
-import org.eclipse.imp.builder.MarkerCreator;
 import org.eclipse.imp.formatting.Activator;
 import org.eclipse.imp.formatting.spec.Parser;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
-import org.eclipse.imp.model.ISourceProject;
-import org.eclipse.imp.model.ModelFactory;
-import org.eclipse.imp.model.ModelFactory.ModelException;
-import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.runtime.PluginBase;
-import org.osgi.framework.Bundle;
 
 /**
  * @author
