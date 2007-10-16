@@ -68,7 +68,6 @@ public class Parser extends DefaultHandler {
 			
 			if (spec != null) {
 				String boxString = transformer.transformToBox(spec.getExampleAst());
-				System.err.println("example box: " + boxString);
 				spec.setExample(BoxFactory.box2text(boxString));
 				
 				return spec;
