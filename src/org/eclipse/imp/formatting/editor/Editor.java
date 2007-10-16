@@ -2,7 +2,6 @@ package org.eclipse.imp.formatting.editor;
 
 import java.util.Iterator;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -33,7 +32,6 @@ import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.MultiPageEditorPart;
-import org.xml.sax.SAXException;
 
 /**
  * This is the start of a prototype generic formatting tool for IMP.
@@ -55,29 +53,22 @@ public class Editor extends MultiPageEditorPart implements
 		IResourceChangeListener {
 	protected TextEditor editor;
 
-	protected Composite rules;
+	protected ScrolledComposite scroll;
 
 	protected Text example;
 
-	private Specification spec;
-	
-	private ModifyListener modifyListener = new ModifyListener() {
-		public void modifyText(ModifyEvent e) {
-			modified = true;
-			firePropertyChange(PROP_DIRTY);
-		}
-	};
-	
-	public boolean modified = false;
+	private Specification model;
+
+	private boolean rulesModified = false;
+
+	private boolean exampleModified = false;
 
 	private Parser parser;
-
-	private ScrolledComposite scroll;
 
 	public Editor() {
 		super();
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
-		
+
 	}
 
 	void createPlainEditor() {
@@ -92,30 +83,22 @@ public class Editor extends MultiPageEditorPart implements
 		}
 	}
 
-	public void createStructuredEditor() {
+	public void createRuleEditor() {
 		Composite parent = new Composite(getContainer(), SWT.NONE);
 		parent.setLayout(new FillLayout());
 
-		scroll = new ScrolledComposite(parent, SWT.BORDER
-						| SWT.V_SCROLL);
+		scroll = new ScrolledComposite(parent, SWT.BORDER | SWT.V_SCROLL);
 		scroll.setExpandHorizontal(false);
 		scroll.setExpandVertical(true);
-
-		rules = new Composite(scroll, SWT.NONE);
-		scroll.setContent(rules);
 
 		int index = addPage(parent);
 		setPageText(index, "Rules");
 	}
 
 	private void updateRuleEditor() {
-		if (rules != null) {
-		  rules.dispose();
-		}
-		
-		rules = new Composite(scroll, SWT.NONE);
+		Composite rules = new Composite(scroll, SWT.NONE);
 		scroll.setContent(rules);
-		
+
 		RowLayout rulesLayout = new RowLayout(SWT.VERTICAL);
 		rulesLayout.spacing = 4;
 		rulesLayout.fill = true;
@@ -123,95 +106,81 @@ public class Editor extends MultiPageEditorPart implements
 		rulesLayout.pack = true;
 		rules.setLayout(rulesLayout);
 
-		if (spec != null) {
-			Iterator<Rule> iter = spec.ruleIterator();
+		if (model != null) {
+			Iterator<Rule> iter = model.ruleIterator();
 
 			while (iter.hasNext()) {
 				final Rule rule = iter.next();
-				final Text t = new Text(rules, SWT.BORDER | SWT.V_SCROLL | SWT.WRAP);
-				t.addModifyListener(new ModifyListener() {
-					public void modifyText(ModifyEvent e) {
-						String boxString = t.getText();
-						try {
-							parser.parseBoxAndObject(boxString, rule);
-							modified = true;
-							firePropertyChange(PROP_DIRTY);
-						} catch (SAXException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-					}
-				});
+				final Text t = new Text(rules, SWT.BORDER | SWT.V_SCROLL
+						| SWT.WRAP);
 				RowData data = new RowData();
 				data.height = t.getLineHeight() * 5;
 				data.width = 700;
 				t.setLayoutData(data);
 				t.setText(rule.getBoxString());
+				t.addModifyListener(new ModifyListener() {
+					public void modifyText(ModifyEvent e) {
+						rule.setBoxString(t.getText());
+						rulesModified = true;
+						firePropertyChange(PROP_DIRTY);
+					}
+				});
 			}
-			
 
 			rules.setSize(rules.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 			scroll.setMinSize(rules.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		}
+		
+		rulesModified = false;
+		firePropertyChange(PROP_DIRTY);
 	}
-	
+
 	public void createExampleViewer() {
 		Composite parent = new Composite(getContainer(), SWT.NONE);
 		parent.setLayout(new FillLayout());
 		example = new Text(parent, SWT.V_SCROLL | SWT.WRAP | SWT.BORDER);
-		
+
 		example.addModifyListener(new ModifyListener() {
-			/* we parse the example, and when it is syntactically
-			 * correct, the model is updated.
-			 */
 			public void modifyText(ModifyEvent e) {
-				String objectString = example.getText();
-				Object ast = parser.parseObject(objectString);
-				if (ast != null) {
-					System.err.println("example parsed ok");
-					spec.setExample(objectString);
-					spec.setExampleAst(ast);
-					modified = true;
-					firePropertyChange(PROP_DIRTY);
-				}
+				model.setExample(example.getText());
+				exampleModified = true;
+				firePropertyChange(PROP_DIRTY);
 			}
 		});
-		
+
 		example.setToolTipText("Example source code");
-		
+
 		int index = addPage(parent);
 		setPageText(index, "Example");
 	}
 
 	protected void updateExample() {
-		if (spec != null) {
-			  example.setText(spec.getExample());
+		if (model != null) {
+			example.setText(model.getExample());
+			exampleModified = false;
+			firePropertyChange(PROP_DIRTY);
 		}
 	}
-	
-	protected void updateStructuredEditor() {
-		
-	}
-	
+
 	protected void createPages() {
 		createPlainEditor();
-		createStructuredEditor();
+		createRuleEditor();
 		createExampleViewer();
-		
+
 		updateModelFromFile();
 		updateRuleEditor();
 		updateExample();
-		
-		modified = false;
+
+		rulesModified = false;
+		exampleModified = false;
 	}
 
 	private void updateModelFromFile() {
 		try {
 			parser = new Parser(((IFileEditorInput) getEditorInput()).getFile());
-			spec = null;
 			String editorText = editor.getDocumentProvider().getDocument(
 					editor.getEditorInput()).get();
-			spec = parser.parse(editorText);
+			model = parser.parse(editorText);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -224,33 +193,23 @@ public class Editor extends MultiPageEditorPart implements
 	}
 
 	public void doSave(IProgressMonitor monitor) {
-		System.err.println("saving!");
-		if (editor.isDirty()) {
-			editor.doSave(monitor);
-			updateModelFromFile();
-			updateRuleEditor();
-			updateExample();
-		}
-		else if (modified) {
+		if (rulesModified || exampleModified) {
 			Unparser u = new Unparser();
-			String newText = u.unparse(spec);
-			
-			System.err.println("unparsed text:" + newText);
-			
-			// TODO: this is probably to slow for large
-			// specifications. Other editors like the plugin.xml
-			// editor constantly update parts of the underlying
-			// xml file. This comes with a lot of complexity though.
-			editor.getDocumentProvider().getDocument(
-					editor.getEditorInput()).set(newText);
+			String newText = u.unparse(model);
+
+			editor.getDocumentProvider().getDocument(editor.getEditorInput())
+					.set(newText);
 			editor.doSave(monitor);
 			updateModelFromFile();
-			updateRuleEditor();
 			updateExample();
+			updateRuleEditor();
 		}
-		
-		modified = false;
-		firePropertyChange(PROP_DIRTY);
+		else if (editor.isDirty()) {
+			editor.doSave(monitor);
+			updateModelFromFile();
+			updateExample();
+			updateRuleEditor();
+		}
 	}
 
 	public void doSaveAs() {
@@ -296,8 +255,8 @@ public class Editor extends MultiPageEditorPart implements
 			});
 		}
 	}
-	
+
 	public boolean isDirty() {
-		return editor.isDirty() || modified;
+		return editor.isDirty() || rulesModified || exampleModified;
 	}
 }

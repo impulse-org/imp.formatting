@@ -39,10 +39,14 @@ public class Parser extends DefaultHandler {
 
 	private ISourceProject project;
 	private IFile file;
+
+	private Transformer transformer;
 	
 	public Parser(IFile file) throws ModelException {
 		this.file = file;
 		this.project = ModelFactory.open(file.getProject());
+		this.spec = new Specification();
+		this.transformer = new Transformer(spec, new PolyglotASTAdapter());
 	}
 
 	public Specification parse(String string) throws Exception {
@@ -61,20 +65,16 @@ public class Parser extends DefaultHandler {
 			SAXParser sp = spf.newSAXParser();
 			sp.parse(input, this);
 
-//			 TODO remove testing code
-			Transformer t = new Transformer(spec, new PolyglotASTAdapter());
-			String boxString = t.transformToBox(spec.getExampleAst());
-			System.err.println("example box: " + boxString);
-			spec.setExample(BoxFactory.box2text(boxString));
 			
 			if (spec != null) {
+				String boxString = transformer.transformToBox(spec.getExampleAst());
+				System.err.println("example box: " + boxString);
+				spec.setExample(BoxFactory.box2text(boxString));
+				
 				return spec;
 			} else {
 				throw new Exception("Parsing of " + input + " failed");
 			}
-			
-			
-
 		} catch (SAXException se) {
 			throw new Exception("Parsing of " + input + " failed", se);
 		} catch (ParserConfigurationException pce) {
@@ -86,9 +86,7 @@ public class Parser extends DefaultHandler {
 
 	public void startElement(String uri, String localName, String qName,
 			Attributes attributes) throws SAXException {
-		if (qName.equals("formatter")) {
-			spec = new Specification();
-		} else if (qName.equals("rule")) {
+		if (qName.equals("rule")) {
 			tmpRule = new Rule();
 		} else if (qName.equals("box")) {
 			tmpContents = "";
