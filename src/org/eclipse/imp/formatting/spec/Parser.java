@@ -17,6 +17,10 @@ import org.eclipse.imp.box.parser.BoxParseController;
 import org.eclipse.imp.box.parser.Ast.IBox;
 import org.eclipse.imp.builder.BuilderUtils;
 import org.eclipse.imp.java.matching.PolyglotASTAdapter;
+import polyglot.ast.Node;
+import polyglot.util.Position;
+import x10.parser.X10Parser.JPGPosition;
+
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.model.ModelFactory.ModelException;
@@ -38,28 +42,37 @@ public class Parser extends DefaultHandler {
 	protected String tmpContents;
 
 	private ISourceProject project;
+
 	private IFile file;
 
 	private Transformer transformer;
-	
+
 	public Parser(IFile file) throws ModelException {
 		this.file = file;
 		this.project = ModelFactory.open(file.getProject());
 		this.spec = new Specification();
-		this.transformer = new Transformer(spec, new PolyglotASTAdapter());
-	}
+		this.transformer = new Transformer(spec, new PolyglotASTAdapter() {
+			public int getOffset(Object astNode) {
+				Node node = (Node) astNode;
 
-	public Specification parse(String string) throws Exception {
-		return parse(new InputSource(new StringReader(string)));
+				return ((Position) node.position()).offset();
+			}
+
+			public int getLength(Object astNode) {
+				Node node = (Node) astNode;
+
+				return ((Position) node.position()).endOffset() - ((Position) node.position()).offset() + 1;
+			}
+		});
 	}
 
 	public Specification parse() throws Exception {
-		return parse(new InputSource(new StringReader(BuilderUtils
-				.getFileContents(file))));
+		return parse(BuilderUtils.getFileContents(file));
 	}
 
-	protected Specification parse(InputSource input) throws Exception {
+	public Specification parse(String inputString) throws Exception {
 		// TODO: throw some sensible exception
+		InputSource input = new InputSource(new StringReader(inputString));
 
 		try {
 			SAXParser sp = spf.newSAXParser();
@@ -67,12 +80,13 @@ public class Parser extends DefaultHandler {
 
 			// TODO: move this outside of the parser
 			if (spec != null) {
-				String boxString = transformer.transformToBox(spec.getExampleAst());
-				
+				String boxString = transformer.transformToBox(spec.getExample(), spec
+						.getExampleAst());
+
 				if (boxString != null) {
-				  spec.setExample(BoxFactory.box2text(boxString));
+					spec.setExample(BoxFactory.box2text(boxString));
 				}
-				
+
 				return spec;
 			} else {
 				throw new Exception("Parsing of " + input + " failed");
@@ -113,7 +127,8 @@ public class Parser extends DefaultHandler {
 		}
 	}
 
-	public void parseBoxAndObject(String boxString, Rule rule) throws SAXException {
+	public void parseBoxAndObject(String boxString, Rule rule)
+			throws SAXException {
 		rule.setBoxString(boxString);
 		rule.setBoxAst(parseBox(boxString));
 		try {
@@ -137,27 +152,32 @@ public class Parser extends DefaultHandler {
 		IParseController parseController = new BoxParseController();
 		IMessageHandler handler = new IMessageHandler() {
 
-			public void handleMessage(int errorCode, int[] msgLocation, int[] errorLocation, String filename, String[] errorInfo) {
+			public void handleMessage(int errorCode, int[] msgLocation,
+					int[] errorLocation, String filename, String[] errorInfo) {
 				System.err.println("error during box parsing: " + errorInfo);
 			}
-			
+
 		};
 		IProgressMonitor monitor = new NullProgressMonitor();
-		parseController.initialize(file.getProjectRelativePath(), project, handler);
+		parseController.initialize(file.getProjectRelativePath(), project,
+				handler);
 		return (IBox) parseController.parse(boxString, false, monitor);
 	}
-	
+
 	public Object parseObject(String objectString) {
 		IParseController parseController = new ParseController();
 		IProgressMonitor monitor = new NullProgressMonitor();
 		IMessageHandler handler = new IMessageHandler() {
 
-			public void handleMessage(int errorCode, int[] msgLocation, int[] errorLocation, String filename, String[] errorInfo) {
-				System.err.println("error during object language parsing: " + errorInfo);
+			public void handleMessage(int errorCode, int[] msgLocation,
+					int[] errorLocation, String filename, String[] errorInfo) {
+				System.err.println("error during object language parsing: "
+						+ errorInfo);
 			}
-			
+
 		};
-		parseController.initialize(file.getProjectRelativePath(), project, handler);
+		parseController.initialize(file.getProjectRelativePath(), project,
+				handler);
 		return parseController.parse(objectString, false, monitor);
 	}
 
