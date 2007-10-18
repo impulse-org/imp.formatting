@@ -1,0 +1,4 @@
+*.l
+FormattingSpecificationKWLexer*.java
+FormattingSpecificationLexer*.java
+FormattingSpecificationParser*.java
