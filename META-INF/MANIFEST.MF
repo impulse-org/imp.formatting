@@ -23,7 +23,7 @@ Require-Bundle: org.eclipse.ui.workbench.texteditor,
  org.eclipse.ui.forms,
  x10.compiler,
  org.eclipse.imp.x10dt,
- org.eclipse.imp.x10dt.ui,
  org.eclipse.imp.xform,
+ org.eclipse.imp.x10dt.ui,
  org.eclipse.imp.java.core
 Eclipse-LazyStart: true

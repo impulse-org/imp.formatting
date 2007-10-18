@@ -11,7 +11,6 @@ import lpg.runtime.IMessageHandler;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -19,7 +18,6 @@ import org.eclipse.imp.box.builders.BoxFactory;
 import org.eclipse.imp.box.parser.BoxParseController;
 import org.eclipse.imp.box.parser.Ast.IBox;
 import org.eclipse.imp.builder.BuilderUtils;
-import org.eclipse.imp.builder.MarkerCreator;
 import org.eclipse.imp.formatting.Activator;
 import org.eclipse.imp.java.matching.PolyglotASTAdapter;
 import org.eclipse.imp.model.ISourceProject;
@@ -70,8 +68,6 @@ public class Parser extends DefaultHandler {
 				return ((Position) node.position()).endOffset() - ((Position) node.position()).offset() + 1;
 			}
 		});
-		
-		
 	}
 
 	public Specification parse() throws Exception {
@@ -92,7 +88,7 @@ public class Parser extends DefaultHandler {
 						.getExampleAst());
 
 				if (boxString != null) {
-					spec.setExample(BoxFactory.box2text(boxString));
+					spec.setExample(BoxFactory.fastbox2text(boxString));
 				}
 
 				return spec;
@@ -140,7 +136,7 @@ public class Parser extends DefaultHandler {
 		rule.setBoxString(boxString);
 		rule.setBoxAst(parseBox(boxString));
 		try {
-			rule.setPatternString(BoxFactory.box2text(boxString));
+			rule.setPatternString(BoxFactory.fastbox2text(boxString));
 			rule.setPatternAst(parseObject(rule.getPatternString()));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

@@ -11,6 +11,7 @@ import org.eclipse.imp.formatting.spec.Parser;
 import org.eclipse.imp.formatting.spec.Rule;
 import org.eclipse.imp.formatting.spec.Specification;
 import org.eclipse.imp.formatting.spec.Unparser;
+import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -68,6 +69,7 @@ public class Editor extends MultiPageEditorPart implements
 	public Editor() {
 		super();
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
+		LanguageRegistry.getLanguages();
 
 	}
 

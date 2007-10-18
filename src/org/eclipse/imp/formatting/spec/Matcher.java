@@ -35,7 +35,7 @@ public class Matcher {
 		
 		System.err.println("kind1: " + kind1);
 		System.err.println("kind2: " + kind2);
-		
+
 		// TODO: the serious flaw here is that a nodes identity is not uniquely
 		// defined by the attributes that I can get here generically. There are
 		// hidden fields that contribute to the nodes identity and this will make
@@ -52,10 +52,12 @@ public class Matcher {
 			Object[] kids1 = adapter.getChildren(ast1);
 			Object[] kids2 = adapter.getChildren(ast2);
 
-			assert kids1.length == kids2.length;
-			
 			System.err.println("kids1: " + kids1.length);
 			System.err.println("kids2: " + kids2.length);
+			
+			if (kids1.length != kids2.length) {
+				return false;
+			}
 
 			for (int i = 0; i < kids1.length && i < kids2.length; i++) {
 				if (!match(kids1[i], kids2[i])) {
