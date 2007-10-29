@@ -120,7 +120,10 @@ public class Parser extends DefaultHandler {
 	public void endElement(String uri, String localName, String qName)
 			throws SAXException {
 		if (qName.equals("rule")) {
-			spec.addRule(tmpRule);
+			if (tmpRule.getBoxAst() != null &&
+					tmpRule.getPatternAst() != null) {
+			  spec.addRule(tmpRule);
+			}
 		} else if (qName.equals("box")) {
 			parseBoxAndObject(tmpContents, tmpRule);
 		} else if (qName.equals("example")) {
@@ -132,12 +135,15 @@ public class Parser extends DefaultHandler {
 	}
 
 	public void parseBoxAndObject(String boxString, Rule rule)
-			throws SAXException {
-		rule.setBoxString(boxString);
-		rule.setBoxAst(parseBox(boxString));
+			 {
 		try {
+			rule.setBoxString(boxString);
+			rule.setBoxAst(parseBox(boxString));
 			rule.setPatternString(BoxFactory.fastbox2text(boxString));
 			rule.setPatternAst(parseObject(rule.getPatternString()));
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -145,6 +151,8 @@ public class Parser extends DefaultHandler {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		
 	}
 
 	public void characters(char[] ch, int start, int length)

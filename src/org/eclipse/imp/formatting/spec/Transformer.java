@@ -1,8 +1,10 @@
 package org.eclipse.imp.formatting.spec;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
 
@@ -48,9 +50,10 @@ public class Transformer {
 
 		// TODO: add support for meta variables
 		if (!rules.isEmpty()) {
-			Rule found = matchRule(rules, ast);
+			Map<String, Object> environment = new HashMap<String, Object>();
+			Rule found = matchRule(rules, ast, environment);
 			if (found != null) {
-				return found.getBoxString();
+				return matcher.substitute(found.getBoxString(), environment);
 			}
 		}
 		
@@ -65,13 +68,13 @@ public class Transformer {
 		return "\"" + source.substring(offset, offset + length).replaceAll("\n","\\\\n").replaceAll("\t","\\\\t") + "\"";
 	}
 
-	private Rule matchRule(List<Rule> rules, Object ast) {
+	private Rule matchRule(List<Rule> rules, Object ast, Map<String, Object> environment) {
 		Iterator<Rule> iter = rules.iterator();
 
 		while (iter.hasNext()) {
 			Rule rule = iter.next();
 
-			if (matcher.match(rule.getPatternAst(), ast)) {
+			if (matcher.match(rule.getPatternAst(), ast, environment)) {
 				return rule;
 			}
 		}

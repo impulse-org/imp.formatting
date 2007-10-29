@@ -67,4 +67,8 @@ public class Specification {
 	public void setExampleAst(Object object) {
 		this.exampleAst = object;
 	}
+
+	public void removeRule(Rule tmpRule) {
+		rules.remove(tmpRule);
+	}
 }
