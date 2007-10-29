@@ -20,7 +20,11 @@ public class Matcher {
 	}
 	
 	private boolean isVariableName(String name) {
-		return name.endsWith("$") && name.startsWith("$");
+		return name.endsWith(">") && name.startsWith("<");
+	}
+	
+	private boolean isVariableAst(Object pattern) {
+		return isVariableName(pattern.toString());
 	}
 
 	private boolean nodeIdentityMatch(Object pattern, Object object, Map<String, Object> environment) {
@@ -49,7 +53,18 @@ public class Matcher {
 		// nodes match that should not match. I generic AST interface should have
 		// access to ALL the identifying attributes of an AST node.
 
-		return typeMatch(type1, type2) && nameMatch(name1, name2, environment) && kindMatch(kind1, kind2);
+		if (isVariableAst(pattern)) {
+			if (kind1.equals(kind2)) {
+			  environment.put(pattern.toString(), object);
+			  return true;
+			}
+			else {
+				return false;
+			}
+		}
+		else {
+			return typeMatch(type1, type2) && nameMatch(name1, name2, environment) && kindMatch(kind1, kind2);
+		}
 	}
 
 	private boolean kindMatch(String kind1, String kind2) {
