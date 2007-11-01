@@ -7,6 +7,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import lpg.runtime.IAst;
 import lpg.runtime.IMessageHandler;
 
 import org.eclipse.core.resources.IFile;
@@ -19,20 +20,35 @@ import org.eclipse.imp.box.parser.BoxParseController;
 import org.eclipse.imp.box.parser.Ast.IBox;
 import org.eclipse.imp.builder.BuilderUtils;
 import org.eclipse.imp.formatting.Activator;
-import org.eclipse.imp.java.matching.PolyglotASTAdapter;
+import org.eclipse.imp.lpg.refactoring.LPGASTAdapter;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.imp.x10dt.ui.parser.ParseController;
+import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
+import org.eclipse.imp.xform.pattern.parser.ASTAdapterBase;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import polyglot.ast.Node;
-import polyglot.util.Position;
+import pico.imp.parser.PicoParseController;
 
+/**
+ * This parser reads .fdl files. These are XML files containing lists of Box
+ * expressions and an example program. The fun of parsing .fdl files is that
+ * it contains embedded Box, and embedded object language code. We use SAX
+ * to parse the XML backbone, we use the org.eclipse.imp.box package to parse
+ * the box expressions. Each box expressions represents a pattern in the object
+ * language, another parser is called to parse those. Finally, the example source
+ * code is parsed with that same parser.
+ * 
+ * The parser constructs a @see Specification object that contains all relevant 
+ * information.
+ * 
+ * @author jurgenv
+ *
+ */
 public class Parser extends DefaultHandler {
 
 	private static final String PROBLEM_TYPE = "org.eclipse.imp.formatting.parsing";
@@ -55,26 +71,33 @@ public class Parser extends DefaultHandler {
 		this.file = file;
 		this.project = ModelFactory.open(file.getProject());
 		this.spec = new Specification();
-		this.transformer = new Transformer(spec, new PolyglotASTAdapter() {
+		this.transformer = new Transformer(spec, new ASTAdapterBase() {
+			@Override
+			public Object[] getChildren(Object astNode) {
+				return ((IAst) astNode).getChildren().toArray();
+			}
+			
+			@Override
 			public int getOffset(Object astNode) {
-				Node node = (Node) astNode;
-
-				return ((Position) node.position()).offset();
+				return ((IAst) astNode).getLeftIToken().getStartOffset();
 			}
-
+			
+			
 			public int getLength(Object astNode) {
-				Node node = (Node) astNode;
-
-				return ((Position) node.position()).endOffset() - ((Position) node.position()).offset() + 1;
+				int end = ((IAst) astNode).getLeftIToken().getEndOffset();
+				return end - getOffset(astNode) + 1;
 			}
+			
 		});
 	}
+
+	
 
 	public Specification parse() throws Exception {
 		return parse(BuilderUtils.getFileContents(file));
 	}
 
-	public Specification parse(String inputString) throws Exception {
+	public Specification parse(String inputString) throws ParseException {
 		// TODO: throw some sensible exception
 		InputSource input = new InputSource(new StringReader(inputString));
 
@@ -82,25 +105,34 @@ public class Parser extends DefaultHandler {
 			SAXParser sp = spf.newSAXParser();
 			sp.parse(input, this);
 
+			if (spec == null) {
+				throw new ParseException("Parsing of " + input + "failed miserably");
+			}
+			
 			// TODO: move this outside of the parser
-			if (spec != null) {
+			if (spec.getExampleAst() != null) {
 				String boxString = transformer.transformToBox(spec.getExample(), spec
 						.getExampleAst());
 
 				if (boxString != null) {
-					spec.setExample(BoxFactory.fastbox2text(boxString));
+					try {
+						spec.setExample(BoxFactory.fastbox2text(boxString));
+					} catch (InterruptedException e) {
+						throw new ParseException("Formatting of the example code failed", e);
+					}
 				}
-
-				return spec;
-			} else {
-				throw new Exception("Parsing of " + input + " failed");
 			}
+			else {
+				System.err.println("Example was not parsed correctly");
+			}
+			
+			return spec;
 		} catch (SAXException se) {
-			throw new Exception("Parsing of " + input + " failed", se);
+			throw new ParseException("Parsing of " + input + " failed because XML was invalid", se);
 		} catch (ParserConfigurationException pce) {
-			throw new Exception("Parsing of " + input + " failed", pce);
+			throw new ParseException("Parsing of " + input + " failed because XML configuration is wrong", pce);
 		} catch (IOException ie) {
-			throw new Exception("Parsing of " + input + " failed", ie);
+			throw new ParseException("Parsing of " + input + " failed because of an input error", ie);
 		}
 	}
 
@@ -188,7 +220,7 @@ public class Parser extends DefaultHandler {
 	}
 
 	public Object parseObject(String objectString) {
-		IParseController parseController = new ParseController();
+		IParseController parseController = new PicoParseController();
 		IProgressMonitor monitor = new NullProgressMonitor();
 		IMessageHandler handler = new IMessageHandler() {
 

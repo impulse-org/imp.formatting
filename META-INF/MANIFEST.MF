@@ -7,7 +7,6 @@ Bundle-Activator: org.eclipse.imp.formatting.Activator
 Bundle-Vendor: jurgen.vinju@gmail.com
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.ui.workbench.texteditor,
- polyglot,
  org.eclipse.core.runtime,
  org.eclipse.ui,
  org.eclipse.core.resources,
@@ -21,9 +20,7 @@ Require-Bundle: org.eclipse.ui.workbench.texteditor,
  org.eclipse.ui.ide,
  org.eclipse.ui.workbench.texteditor,
  org.eclipse.ui.forms,
- x10.compiler,
- org.eclipse.imp.x10dt,
  org.eclipse.imp.xform,
- org.eclipse.imp.x10dt.ui,
- org.eclipse.imp.java.core
+ Pico,
+ org.eclipse.imp.lpg.runtime
 Eclipse-LazyStart: true

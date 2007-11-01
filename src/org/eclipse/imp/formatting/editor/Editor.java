@@ -7,11 +7,13 @@ import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.formatting.spec.ParseException;
 import org.eclipse.imp.formatting.spec.Parser;
 import org.eclipse.imp.formatting.spec.Rule;
 import org.eclipse.imp.formatting.spec.Specification;
 import org.eclipse.imp.formatting.spec.Unparser;
 import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -187,9 +189,10 @@ public class Editor extends MultiPageEditorPart implements
 			String editorText = editor.getDocumentProvider().getDocument(
 					editor.getEditorInput()).get();
 			model = parser.parse(editorText);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (ParseException e) {
+			System.err.println("error:" + e);
+		} catch (ModelFactory.ModelException e) {
+			System.err.println("model error:" + e);
 		}
 	}
 

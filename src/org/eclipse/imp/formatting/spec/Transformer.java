@@ -22,59 +22,121 @@ import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
  * 
  */
 public class Transformer {
-	private Specification spec;
-
 	private IASTAdapter adapter;
 
 	private Matcher matcher;
+	
+	private BoxStringBuilder builder;
+	
+	private BoxEnvironment boxes;
+	
+	private Map<String,List<Rule>> ruleMap;
 
 	public Transformer(Specification spec, IASTAdapter adapter) {
-		this.spec = spec;
 		this.adapter = adapter;
 		this.matcher = new Matcher(adapter);
+		this.builder = new BoxStringBuilder(adapter);
+		this.boxes = new BoxEnvironment();
+		this.ruleMap = new HashMap<String,List<Rule>>();
+		
+		initializeRuleMap(spec, adapter);
 	}
 
+	/**
+	 * We fill a map to be able to quickly select rules that may be applicable.
+	 * 
+	 * @param spec
+	 * @param adapter
+	 */
+	private void initializeRuleMap(Specification spec, IASTAdapter adapter) {
+		Iterator<Rule> iter = spec.ruleIterator();
+		while (iter.hasNext()) {
+			Rule rule = iter.next();
+			Object pattern = rule.getPatternAst();
+			String outermost = adapter.getTypeOf(pattern);
+			List<Rule> list = ruleMap.get(outermost);
+			
+			if (list == null) {
+				list = new LinkedList<Rule>();
+			}
+			list.add(rule);
+			
+			this.ruleMap.put(outermost, list);
+		}
+	}
+	
+	public String getBox(Object ast) {
+		return boxes.get(ast);
+	}
+	
+	/**
+	 * Transforms an AST to a Box expression representing the source code
+	 * of this AST.
+	 * @param source 
+	 * @param ast
+	 * @return
+	 */
 	public String transformToBox(String source, Object ast) {
+		transform(source, ast);
+		String box = boxes.get(ast);
+		boxes.clear();
+		return box;
+	}
+	
+	/**
+	 * This method associates a box expression in String format with every
+	 * AST node by applying the rules in the specification. It works bottom-up, 
+	 * which is necessary to make sure that for every variable bound by a pattern 
+	 * there is already a corresponding
+	 * Box string associated in the this.boxes environment.
+	 * @param source Used to construct default box expressions in absence of a rule
+	 * @param ast    Used to apply the rules to.
+	 */
+	private void transform(String source, Object ast) {
 		Object[] kids = adapter.getChildren(ast);
-		String[] newkids = new String[kids.length];
 		
 		if (kids.length == 0) {
-			return sourceTextBox(source, ast);
+			boxes.put(ast, builder.literal(source, ast));
+			return;
 		}
-
+		
 		for (int i = 0; i < kids.length; i++) {
-			newkids[i] = transformToBox(source, kids[i]);
+			transform(source, kids[i]);
 		}
 
 		List<Rule> rules = findRules(ast);
 
-		// TODO: add support for meta variables
 		if (!rules.isEmpty()) {
-			Map<String, Object> environment = new HashMap<String, Object>();
+			VariableEnvironment environment = new VariableEnvironment();
 			Rule found = matchRule(rules, ast, environment);
 			if (found != null) {
-				return matcher.substitute(found.getBoxString(), environment);
+				String box = builder.substitute(found.getBoxString(), environment, boxes);
+				boxes.put(ast, box);
+				return;
 			}
 		}
 		
-		// TODO: figure out a smarter default, this will not work right
-		// with nested applications of rules
-		return sourceTextBox(source, ast);
+		boxes.put(ast, builder.defaultWrapper(source, kids, boxes));
+		return;
 	}
 
-	private String sourceTextBox(String source, Object ast) {
-		int offset = adapter.getOffset(ast);
-		int length = adapter.getLength(ast);
-		return "\"" + source.substring(offset, offset + length).replaceAll("\n","\\\\n").replaceAll("\t","\\\\t") + "\"";
-	}
-
-	private Rule matchRule(List<Rule> rules, Object ast, Map<String, Object> environment) {
+	/**
+	 * This method returns the first rule to match, and as a side effect
+	 * the environment is filled.
+	 * @param rules
+	 * @param ast
+	 * @param environment
+	 * @return
+	 */
+	private Rule matchRule(List<Rule> rules, Object ast, VariableEnvironment environment) {
 		Iterator<Rule> iter = rules.iterator();
 
-		while (iter.hasNext()) {
+		while (iter.hasNext()) { 
 			Rule rule = iter.next();
+			environment.clear();
 
-			if (matcher.match(rule.getPatternAst(), ast, environment)) {
+			if (rule.getPatternAst() != null
+					&& matcher.match(rule.getPatternAst(), ast, environment)) {
 				return rule;
 			}
 		}
@@ -82,21 +144,17 @@ public class Transformer {
 		return null;
 	}
 
+	/**
+	 * Finds a list of rules that could match this AST. This pre-selection
+	 * optimizes the transformation by considering only the rules that
+	 * have a certain chance to match.
+	 * @param ast
+	 * @return
+	 */
 	private List<Rule> findRules(Object ast) {
-		Iterator<Rule> rules = spec.ruleIterator();
-		List<Rule> selection = new LinkedList<Rule>();
-		String outermost = adapter.getTypeOf(ast);
-
-		while (rules.hasNext()) {
-			Rule rule = rules.next();
-			String ruleOutermost = adapter.getTypeOf(rule.getPatternAst());
-
-			if (outermost.equals(ruleOutermost)) {
-				selection.add(rule);
-			}
-		}
-
-		return selection;
+		List<Rule> rules = ruleMap.get(adapter.getTypeOf(ast));
+		
+		return rules != null ? rules : new LinkedList<Rule>();
 	}
 
 }
