@@ -20,12 +20,10 @@ import org.eclipse.imp.box.parser.BoxParseController;
 import org.eclipse.imp.box.parser.Ast.IBox;
 import org.eclipse.imp.builder.BuilderUtils;
 import org.eclipse.imp.formatting.Activator;
-import org.eclipse.imp.lpg.refactoring.LPGASTAdapter;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
 import org.eclipse.imp.xform.pattern.parser.ASTAdapterBase;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -33,6 +31,15 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import pico.imp.parser.PicoParseController;
+import pico.imp.parser.Ast.Decls1;
+import pico.imp.parser.Ast.Expr;
+import pico.imp.parser.Ast.IdType1;
+import pico.imp.parser.Ast.IdTypes1;
+import pico.imp.parser.Ast.Identifier1;
+import pico.imp.parser.Ast.Program1;
+import pico.imp.parser.Ast.Stat3;
+import pico.imp.parser.Ast.Stats1;
+import pico.imp.parser.Ast.Type2;
 
 /**
  * This parser reads .fdl files. These are XML files containing lists of Box
@@ -88,6 +95,22 @@ public class Parser extends DefaultHandler {
 				return end - getOffset(astNode) + 1;
 			}
 			
+			public String getTypeOf(Object astNode) {
+				return astNode.getClass().getName();
+			}
+			
+			@Override
+			public boolean isPlaceholder(Object astNode) {
+				return astNode instanceof Expr
+				|| astNode instanceof Program1
+				|| astNode instanceof Decls1
+				|| astNode instanceof Stats1
+				|| astNode instanceof IdTypes1
+				|| astNode instanceof IdType1
+				|| astNode instanceof Identifier1
+				|| astNode instanceof Type2
+				|| astNode instanceof Stat3;
+			}
 		});
 	}
 

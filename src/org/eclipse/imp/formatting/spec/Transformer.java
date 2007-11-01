@@ -31,12 +31,15 @@ public class Transformer {
 	private BoxEnvironment boxes;
 	
 	private Map<String,List<Rule>> ruleMap;
+	
+	private Specification spec;
 
 	public Transformer(Specification spec, IASTAdapter adapter) {
 		this.adapter = adapter;
 		this.matcher = new Matcher(adapter);
 		this.builder = new BoxStringBuilder(adapter);
 		this.boxes = new BoxEnvironment();
+		this.spec = spec;
 		this.ruleMap = new HashMap<String,List<Rule>>();
 		
 		initializeRuleMap(spec, adapter);
@@ -49,6 +52,7 @@ public class Transformer {
 	 * @param adapter
 	 */
 	private void initializeRuleMap(Specification spec, IASTAdapter adapter) {
+		ruleMap.clear();
 		Iterator<Rule> iter = spec.ruleIterator();
 		while (iter.hasNext()) {
 			Rule rule = iter.next();
@@ -77,6 +81,7 @@ public class Transformer {
 	 * @return
 	 */
 	public String transformToBox(String source, Object ast) {
+		initializeRuleMap(spec, adapter);
 		transform(source, ast);
 		String box = boxes.get(ast);
 		boxes.clear();

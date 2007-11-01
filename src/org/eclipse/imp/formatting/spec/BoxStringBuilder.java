@@ -55,9 +55,13 @@ public class BoxStringBuilder {
 
 	private String replaceAll(String boxString, String var, String val) {
 		int i;
+		// there is some magic going on here, every variable in the box string
+		// is surrounded by quotes. We adapt the value of i (+1 and -1) to remove
+		// them on-the-fly. This makes the code brittle, since every variable now
+		// HAS to be surrounded by double quotes
 		while ((i = boxString.indexOf(var)) != -1) {
-			boxString = boxString.substring(0, i) + val
-					+ boxString.substring(i + var.length());
+			boxString = boxString.substring(0, i - 1) + val
+					+ boxString.substring(i + var.length() + 1);
 		}
 		return boxString;
 	}
