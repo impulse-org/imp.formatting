@@ -36,11 +36,10 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 	private Transformer transformer;
 
 	public void formatterStarts(String initialIndentation) {
-		System.err.println("formatting starts");
-		initExtensionPoints();
+		initialize();
 	}
 
-	private void initExtensionPoints() {
+	private void initialize() {
 		UniversalEditor ue = (UniversalEditor) getActiveEditor();
 		fLanguage = LanguageRegistry.findLanguage(ue.getEditorInput());
 		ExtensionPointBinder b = new ExtensionPointBinder(fLanguage);
