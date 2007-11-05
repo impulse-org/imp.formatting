@@ -9,6 +9,7 @@ import org.eclipse.imp.formatting.Activator;
 import org.eclipse.imp.formatting.spec.Parser;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.runtime.PluginBase;
 
 /**
@@ -134,10 +135,12 @@ public class FormattingSpecificationBuilder extends BuilderBase {
 	protected void runParserForCompiler(final IFile file,
 			IProgressMonitor monitor) {
 		try {
-			Parser p = new Parser(file);
+			// TODO bind extension points here to!
+			IPath path = file.getProjectRelativePath();
+			Parser p = new Parser(path, (ISourceProject) file.getProject());
 
 			try {
-				p.parse();
+				p.parse(path);
 			} catch (Exception e) {
 				// TODO change exception type and do something serious with this
 			}

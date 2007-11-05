@@ -41,8 +41,6 @@ public class Transformer {
 		this.boxes = new BoxEnvironment();
 		this.spec = spec;
 		this.ruleMap = new HashMap<String,List<Rule>>();
-		
-		initializeRuleMap(spec, adapter);
 	}
 
 	/**

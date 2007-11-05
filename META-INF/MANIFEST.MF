@@ -21,6 +21,7 @@ Require-Bundle: org.eclipse.ui.workbench.texteditor,
  org.eclipse.ui.workbench.texteditor,
  org.eclipse.ui.forms,
  org.eclipse.imp.xform,
- Pico,
  org.eclipse.imp.lpg.runtime
 Eclipse-LazyStart: true
+Export-Package: org.eclipse.imp.formatting
+Import-Package: org.eclipse.compare

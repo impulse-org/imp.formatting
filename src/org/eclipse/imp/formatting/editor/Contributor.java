@@ -90,7 +90,7 @@ public class Contributor extends MultiPageEditorActionBarContributor {
 	private void createActions() {
 		sampleAction = new Action() {
 			public void run() {
-				System.err.println("TODO: implement add and delete rule");
+				// TODO hello
 			}
 		};
 		sampleAction.setText("Add new rule");

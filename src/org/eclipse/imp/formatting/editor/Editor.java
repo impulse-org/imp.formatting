@@ -1,19 +1,31 @@
 package org.eclipse.imp.formatting.editor;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.box.builders.BoxFactory;
+import org.eclipse.imp.formatting.spec.ExtensionPointBinder;
 import org.eclipse.imp.formatting.spec.ParseException;
 import org.eclipse.imp.formatting.spec.Parser;
 import org.eclipse.imp.formatting.spec.Rule;
 import org.eclipse.imp.formatting.spec.Specification;
+import org.eclipse.imp.formatting.spec.Transformer;
 import org.eclipse.imp.formatting.spec.Unparser;
+import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
+import org.eclipse.imp.model.ModelFactory.ModelException;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -72,7 +84,6 @@ public class Editor extends MultiPageEditorPart implements
 		super();
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
 		LanguageRegistry.getLanguages();
-
 	}
 
 	public Specification getModel() {
@@ -164,9 +175,7 @@ public class Editor extends MultiPageEditorPart implements
 
 	protected void updateExample() {
 		if (model != null) {
-			example.setText(model.getExample());
-			exampleModified = false;
-			firePropertyChange(PROP_DIRTY);
+			reformatExample();
 		}
 	}
 
@@ -185,15 +194,45 @@ public class Editor extends MultiPageEditorPart implements
 
 	private void updateModelFromFile() {
 		try {
-			parser = new Parser(((IFileEditorInput) getEditorInput()).getFile());
+			// TODO bind extension points for this editor too
+			IPath path = ((IFileEditorInput) getEditorInput()).getFile().getProjectRelativePath();
+		
+			// TODO: ooof, what a casting
+			IProject project = ((IFileEditorInput) getEditorInput()).getFile().getProject();
+			ISourceProject sp = ModelFactory.open(project);
+			
+			parser = new Parser(path, sp);
 			String editorText = editor.getDocumentProvider().getDocument(
 					editor.getEditorInput()).get();
 			model = parser.parse(editorText);
+			
+			
 		} catch (ParseException e) {
 			System.err.println("error:" + e);
 		} catch (ModelFactory.ModelException e) {
 			System.err.println("model error:" + e);
 		}
+	}
+
+	private void reformatExample() {
+		Language objectLanguage = LanguageRegistry.findLanguage(model.getLanguage());
+		ExtensionPointBinder b = new ExtensionPointBinder(objectLanguage);
+		Transformer t = new Transformer(model, b.getASTAdapter());
+		String box = t.transformToBox(model.getExample(), model.getExampleAst());
+		String newExample = null;
+		
+		try {
+			newExample = BoxFactory.fastbox2text(box);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		example.setText(newExample);
+		exampleModified = false;
 	}
 
 	public void dispose() {
