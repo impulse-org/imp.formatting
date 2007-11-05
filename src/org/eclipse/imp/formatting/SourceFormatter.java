@@ -98,6 +98,5 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 	}
 
 	public void formatterStops() {
-		System.err.println("Formatting stops");
 	}
 }
