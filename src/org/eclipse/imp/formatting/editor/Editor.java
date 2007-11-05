@@ -89,7 +89,7 @@ public class Editor extends MultiPageEditorPart implements
 	public Specification getModel() {
 		return model;
 	}
-	
+
 	void createPlainEditor() {
 		try {
 			editor = new TextEditor();
@@ -113,7 +113,7 @@ public class Editor extends MultiPageEditorPart implements
 		int index = addPage(parent);
 		setPageText(index, "Rules");
 	}
-	
+
 	private void updateRuleEditor() {
 		Composite rules = new Composite(scroll, SWT.NONE);
 		scroll.setContent(rules);
@@ -149,7 +149,7 @@ public class Editor extends MultiPageEditorPart implements
 			rules.setSize(rules.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 			scroll.setMinSize(rules.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		}
-		
+
 		rulesModified = false;
 		firePropertyChange(PROP_DIRTY);
 	}
@@ -195,18 +195,20 @@ public class Editor extends MultiPageEditorPart implements
 	private void updateModelFromFile() {
 		try {
 			// TODO bind extension points for this editor too
-			IPath path = ((IFileEditorInput) getEditorInput()).getFile().getProjectRelativePath();
-		
+			IPath path = ((IFileEditorInput) getEditorInput()).getFile()
+					.getProjectRelativePath();
+
 			// TODO: ooof, what a casting
-			IProject project = ((IFileEditorInput) getEditorInput()).getFile().getProject();
+			IProject project = ((IFileEditorInput) getEditorInput()).getFile()
+					.getProject();
+			IPath fullFilePath = project.getLocation().append(path);
 			ISourceProject sp = ModelFactory.open(project);
-			
-			parser = new Parser(path, sp);
+
+			parser = new Parser(fullFilePath, sp);
 			String editorText = editor.getDocumentProvider().getDocument(
 					editor.getEditorInput()).get();
 			model = parser.parse(editorText);
-			
-			
+
 		} catch (ParseException e) {
 			System.err.println("error:" + e);
 		} catch (ModelFactory.ModelException e) {
@@ -215,24 +217,31 @@ public class Editor extends MultiPageEditorPart implements
 	}
 
 	private void reformatExample() {
-		Language objectLanguage = LanguageRegistry.findLanguage(model.getLanguage());
-		ExtensionPointBinder b = new ExtensionPointBinder(objectLanguage);
-		Transformer t = new Transformer(model, b.getASTAdapter());
-		String box = t.transformToBox(model.getExample(), model.getExampleAst());
-		String newExample = null;
-		
-		try {
-			newExample = BoxFactory.fastbox2text(box);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		Object ast = model.getExampleAst();
+
+		if (ast != null) {
+
+			Language objectLanguage = LanguageRegistry.findLanguage(model
+					.getLanguage());
+			ExtensionPointBinder b = new ExtensionPointBinder(objectLanguage);
+			Transformer t = new Transformer(model, b.getASTAdapter());
+			String box = t.transformToBox(model.getExample(), model
+					.getExampleAst());
+			String newExample = null;
+
+			try {
+				newExample = BoxFactory.fastbox2text(box);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			example.setText(newExample);
+			exampleModified = false;
 		}
-		
-		example.setText(newExample);
-		exampleModified = false;
 	}
 
 	public void dispose() {
@@ -251,8 +260,7 @@ public class Editor extends MultiPageEditorPart implements
 			updateModelFromFile();
 			updateExample();
 			updateRuleEditor();
-		}
-		else if (editor.isDirty()) {
+		} else if (editor.isDirty()) {
 			editor.doSave(monitor);
 			updateModelFromFile();
 			updateExample();

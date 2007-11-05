@@ -25,7 +25,7 @@ public class Matcher {
 	}
 
 	public boolean match(Object pattern, Object object, VariableEnvironment environment) {
-		if (adapter.isPlaceholder(pattern)) {
+		if (adapter.isMetaVariable(pattern)) {
 			environment.put(pattern.toString(), object);
 			return true;
 		}

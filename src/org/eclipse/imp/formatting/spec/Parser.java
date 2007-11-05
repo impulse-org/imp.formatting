@@ -9,28 +9,20 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import lpg.runtime.IAst;
 import lpg.runtime.IMessageHandler;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.imp.box.builders.BoxFactory;
 import org.eclipse.imp.box.parser.BoxParseController;
 import org.eclipse.imp.box.parser.Ast.IBox;
-import org.eclipse.imp.builder.BuilderUtils;
 import org.eclipse.imp.formatting.Activator;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
-import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
-import org.eclipse.imp.xform.pattern.parser.ASTAdapterBase;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -188,7 +180,7 @@ public class Parser extends DefaultHandler {
 
 		};
 		IProgressMonitor monitor = new NullProgressMonitor();
-		parseController.initialize(path, project, handler);
+		parseController.initializeAbsolute(path, project, handler);
 		return (IBox) parseController.parse(boxString, false, monitor);
 	}
 
@@ -199,12 +191,19 @@ public class Parser extends DefaultHandler {
 
 			public void handleMessage(int errorCode, int[] msgLocation,
 					int[] errorLocation, String filename, String[] errorInfo) {
-				Activator.getInstance().writeErrorMsg(
-						"not a valid sentence in the object language");
+				StringBuffer buf = new StringBuffer();
+				buf.append("parse error: ");
+				for (int i = 0; i < errorInfo.length; i++) {
+					buf.append(errorInfo[i].toString());
+					if (i < errorInfo.length - 1) {
+					  buf.append(", ");
+					}
+				}
+				Activator.getInstance().writeErrorMsg(buf.toString());
 			}
 
 		};
-		parseController.initialize(path, project, handler);
+		parseController.initializeAbsolute(path, project, handler);
 		return parseController.parse(objectString, false, monitor);
 	}
 
