@@ -1,14 +1,9 @@
 package org.eclipse.imp.formatting;
 
 import java.io.IOException;
-import java.net.URL;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.imp.box.builders.BoxFactory;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.formatting.spec.ExtensionPointBinder;
@@ -24,8 +19,6 @@ import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.ISourceFormatter;
-import org.eclipse.imp.utils.ExtensionPointFactory;
-import org.eclipse.imp.utils.StreamUtils;
 import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
