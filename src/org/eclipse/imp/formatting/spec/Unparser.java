@@ -20,9 +20,6 @@ public class Unparser {
 	public String unparse(Specification spec) {
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		
-		System.err.println("spec language: " + spec.getLanguage());
-		System.err.println("spec example:" + spec.getExample());
-		
 		try {
 		DocumentBuilder db = dbf.newDocumentBuilder();
 

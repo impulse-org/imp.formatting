@@ -156,19 +156,13 @@ public class Parser extends DefaultHandler {
 
 	public void parseBoxAndObject(String boxString, Rule rule)
 			throws ParseException {
-		try {
-			rule.setBoxString(boxString);
-			rule.setBoxAst(parseBox(boxString));
-			rule.setPatternString(BoxFactory.fastbox2text(boxString));
-			rule.setPatternAst(parseObject(rule.getPatternString()));
-		} catch (IOException e) {
-			throw new ParseException("Error during parsing of formatting rule",
-					e);
-		} catch (InterruptedException e) {
-			throw new ParseException(
-					"Error during extraction of pattern from rule", e);
-		}
+		rule.setBoxString(boxString);
+		rule.setBoxAst(parseBox(boxString));
 
+		if (rule.getBoxAst() != null) {
+			rule.setPatternString(BoxFactory.extractText(rule.getBoxAst()));
+			rule.setPatternAst(parseObject(rule.getPatternString()));
+		}
 	}
 
 	public void characters(char[] ch, int start, int length)
