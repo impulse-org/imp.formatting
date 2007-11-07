@@ -82,17 +82,23 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 
 	public String format(IParseController parseController, String content,
 			boolean isLineStart, String indentation, int[] positions) {
-		String box = transformer.transformToBox(content, parseController
-				.getCurrentAst());
-		try {
-			return BoxFactory.fastbox2text(box);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return content;
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		Object ast = parseController.getCurrentAst();
+
+		if (ast != null) {
+			String box = transformer.transformToBox(content, ast);
+			try {
+				return BoxFactory.fastbox2text(box);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return content;
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return content;
+			}
+		}
+		else {
 			return content;
 		}
 	}

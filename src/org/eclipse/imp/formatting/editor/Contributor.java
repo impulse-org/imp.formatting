@@ -1,7 +1,5 @@
 package org.eclipse.imp.formatting.editor;
 
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.imp.formatting.spec.Rule;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -28,14 +26,11 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 public class Contributor extends MultiPageEditorActionBarContributor {
 	private IEditorPart activeEditorPart;
 
-	private Action sampleAction;
-
 	/**
 	 * Creates a multi-page contributor.
 	 */
 	public Contributor() {
 		super();
-		createActions();
 	}
 
 	/**
@@ -87,27 +82,13 @@ public class Contributor extends MultiPageEditorActionBarContributor {
 		}
 	}
 
-	private void createActions() {
-		sampleAction = new Action() {
-			public void run() {
-				// TODO hello
-			}
-		};
-		sampleAction.setText("Add new rule");
-		sampleAction.setToolTipText("Add a new formatting rule");
-		sampleAction.setImageDescriptor(PlatformUI.getWorkbench()
-				.getSharedImages().getImageDescriptor(
-						IDE.SharedImages.IMG_OBJS_TASK_TSK));
-	}
 
 	public void contributeToMenu(IMenuManager manager) {
 		IMenuManager menu = new MenuManager("Editor &Menu");
 		manager.prependToGroup(IWorkbenchActionConstants.MB_ADDITIONS, menu);
-		menu.add(sampleAction);
 	}
 
 	public void contributeToToolBar(IToolBarManager manager) {
 		manager.add(new Separator());
-		manager.add(sampleAction);
 	}
 }

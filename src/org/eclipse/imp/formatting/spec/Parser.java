@@ -180,7 +180,7 @@ public class Parser extends DefaultHandler {
 
 		};
 		IProgressMonitor monitor = new NullProgressMonitor();
-		parseController.initializeAbsolute(path, project, handler);
+		parseController.initialize(path, project, handler);
 		return (IBox) parseController.parse(boxString, false, monitor);
 	}
 
@@ -203,7 +203,7 @@ public class Parser extends DefaultHandler {
 			}
 
 		};
-		parseController.initializeAbsolute(path, project, handler);
+		parseController.initialize(path, project, handler);
 		return parseController.parse(objectString, false, monitor);
 	}
 

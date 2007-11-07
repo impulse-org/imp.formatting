@@ -27,9 +27,16 @@ public class BoxStringBuilder {
 	 */
 	public String literal(String source, Object ast) {
 		int start = adapter.getOffset(ast);
-		int end = start + adapter.getLength(ast);
-		String term = source.substring(start, end);
-		return "\"" + term.replaceAll("\n","\\\\n").replaceAll("\t","\\\\t") + "\"";
+		int len = adapter.getLength(ast);
+		
+		if (len != 0) {
+		  int end = start + len;
+		  String term = source.substring(start, end);
+		  return "\"" + term.replaceAll("\n","\\\\n").replaceAll("\t","\\\\t") + "\"";
+		}
+		else {
+			return "";
+		}
 	}
 	
 	/**
@@ -76,19 +83,19 @@ public class BoxStringBuilder {
 	 */
 	public String defaultWrapper(String source, Object[] kids, BoxEnvironment boxes) {
 		if (isCommaList(source, kids)) {
-			return buildListBox("H", kids, boxes);
+			return buildListBox(source, "H", kids, boxes);
 		}
 		else if (isSemiColonList(source, kids)) {
-			return buildListBox("V", kids, boxes);
+			return buildListBox(source, "V", kids, boxes);
 		}
 		else if (isExpressionStructured(kids)) {
-			return buildBox("H", kids, boxes);
+			return buildBox(source, "H", kids, boxes);
 		}
 		else if (isBlockStructured(kids)) {
-			return buildBlock(kids, boxes);
+			return buildBlock(source, kids, boxes);
 		}
 		else {
-			return buildBox("V", kids, boxes);
+			return buildBox(source, "V", kids, boxes);
 		}
 	}
 
@@ -116,11 +123,15 @@ public class BoxStringBuilder {
 	private boolean isExpressionStructured(Object[] kids) {
 		int len = kids.length;
 		
-		if (len == 3) {
+		if (len == 2) {
+			return true;
+		}
+		else if (len == 3) {
 			if (adapter.getChildren(kids[1]).length == 0) {
 				return true;
 			}
 		}
+		
 		
 		return false;
 	}
@@ -142,10 +153,13 @@ public class BoxStringBuilder {
 		return false;
 	}
 
-	private String buildBox(String op, Object[] kids, BoxEnvironment boxes) {
+	private String buildBox(String source, String op, Object[] kids, BoxEnvironment boxes) {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append(op + " [");
 		for (int i = 0; i < kids.length; i++) {
+			if (i != 0) {
+				appendSeparatorsAndComments(buffer, source, kids[i-1], kids[i]);
+			}
 			String box = boxes.get(kids[i]);
 			assert box != null;
 			buffer.append(box);
@@ -154,7 +168,24 @@ public class BoxStringBuilder {
 		return buffer.toString();
 	}
 	
-	private String buildListBox(String op, Object[] kids, BoxEnvironment boxes) {
+	// TODO This is a major workaround for retrieving tokens that can not be found as leaves to any AST.
+	// It works well for list separators, but for comments it does not work. This will just find any non-white space
+	// characters in between two nodes, but comments contain non-whitespace characters. These are removed by this code.
+	private void appendSeparatorsAndComments(StringBuffer buffer, String source, Object first, Object second) {
+		int startFirst = adapter.getOffset(first);
+		int lenFirst = adapter.getLength(first);
+		int startSecond = adapter.getOffset(second);
+		String middle = source.substring(startFirst + lenFirst, startSecond);
+		
+		String nonWhitespace[] = middle.split("[\\s]");
+		for (int i = 0; i < nonWhitespace.length; i++) {
+			if (nonWhitespace[i].length() != 0) {
+			  buffer.append("\"" + nonWhitespace[i] + "\"");
+			}
+		}
+	}
+
+	private String buildListBox(String source, String op, Object[] kids, BoxEnvironment boxes) {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append(op + " [");
 		
@@ -172,7 +203,7 @@ public class BoxStringBuilder {
 		return buffer.toString();
 	}
 
-	private String buildBlock(Object[] kids, BoxEnvironment boxes) {
+	private String buildBlock(String source, Object[] kids, BoxEnvironment boxes) {
 		assert kids.length >= 3;
 		
 		StringBuffer buffer = new StringBuffer();
@@ -181,6 +212,10 @@ public class BoxStringBuilder {
 		buffer.append("I is=3 [ V [");
 		
 		for (int i = 1; i < kids.length - 1; i++) {
+			if (i != 0) {
+				appendSeparatorsAndComments(buffer, source, kids[i-1], kids[i]);
+			}
+			
 			String box = boxes.get(kids[i]);
 			assert box != null;
 			buffer.append(box);

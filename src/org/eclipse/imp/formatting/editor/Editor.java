@@ -26,22 +26,32 @@ import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
+import org.eclipse.jface.action.AbstractAction;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
@@ -79,6 +89,8 @@ public class Editor extends MultiPageEditorPart implements
 	private boolean exampleModified = false;
 
 	private Parser parser;
+	
+	private Rule activeRule;
 
 	public Editor() {
 		super();
@@ -102,6 +114,7 @@ public class Editor extends MultiPageEditorPart implements
 		}
 	}
 
+	
 	public void createRuleEditor() {
 		Composite parent = new Composite(getContainer(), SWT.NONE);
 		parent.setLayout(new FillLayout());
@@ -112,6 +125,24 @@ public class Editor extends MultiPageEditorPart implements
 
 		int index = addPage(parent);
 		setPageText(index, "Rules");
+		
+		createRuleActions();
+	}
+
+	
+
+	private void createRuleActions() {
+		editor.setAction("newRule", new Action() {
+			public void run() {
+				newRule();
+			}
+		});
+		
+		editor.setAction("deleteRule", new Action() {
+			public void run() {
+				deleteRule();
+			}
+		});
 	}
 
 	private void updateRuleEditor() {
@@ -144,6 +175,16 @@ public class Editor extends MultiPageEditorPart implements
 						firePropertyChange(PROP_DIRTY);
 					}
 				});
+				t.setData("rule", rule);
+				t.addFocusListener(new FocusListener() {
+					public void focusGained(FocusEvent e) {
+						activeRule = (Rule) ((Text) e.getSource()).getData("rule");
+					}
+
+					public void focusLost(FocusEvent e) {
+						activeRule = null;
+					}
+				});
 			}
 
 			rules.setSize(rules.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -159,6 +200,8 @@ public class Editor extends MultiPageEditorPart implements
 		parent.setLayout(new FillLayout());
 		example = new Text(parent, SWT.V_SCROLL | SWT.WRAP | SWT.BORDER);
 
+		example.setFont(new Font(example.getDisplay(),"Monospace",10,0));
+		
 		example.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
 				model.setExample(example.getText());
@@ -183,10 +226,12 @@ public class Editor extends MultiPageEditorPart implements
 		createPlainEditor();
 		createRuleEditor();
 		createExampleViewer();
+		
 
 		updateModelFromFile();
 		updateRuleEditor();
 		updateExample();
+		
 
 		rulesModified = false;
 		exampleModified = false;
@@ -314,5 +359,17 @@ public class Editor extends MultiPageEditorPart implements
 
 	public boolean isDirty() {
 		return editor.isDirty() || rulesModified || exampleModified;
+	}
+
+	public void newRule() {
+		model.addRule(new Rule());
+		rulesModified = true;
+		updateRuleEditor();
+	}
+	
+	public void deleteRule() {
+		if (activeRule != null) {
+		  model.removeRule(activeRule);
+		}
 	}
 }
