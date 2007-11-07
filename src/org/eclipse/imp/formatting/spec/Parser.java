@@ -61,8 +61,14 @@ public class Parser extends DefaultHandler {
 	private IPath path;
 
 	private IParseController objectParser;
-	
+
 	private Language objectLanguage;
+
+	private IParseController boxParser;
+
+	private IProgressMonitor boxParserMonitor;
+
+	private IProgressMonitor objectParserMonitor;
 
 	public Parser(IPath path, ISourceProject project) throws ModelException {
 		this.path = path;
@@ -75,10 +81,11 @@ public class Parser extends DefaultHandler {
 	 * 
 	 * @param path
 	 * @return
-	 * @throws FileNotFoundException 
+	 * @throws FileNotFoundException
 	 * @throws Exception
 	 */
-	public Specification parse(IPath path) throws ParseException, FileNotFoundException {
+	public Specification parse(IPath path) throws ParseException,
+			FileNotFoundException {
 		this.path = path;
 		return parse(new InputSource(new FileReader(path.toOSString())));
 	}
@@ -170,41 +177,52 @@ public class Parser extends DefaultHandler {
 	}
 
 	public IBox parseBox(String boxString) {
-		IParseController parseController = new BoxParseController();
-		IMessageHandler handler = new IMessageHandler() {
+		initializeBoxParser();
+		return (IBox) boxParser.parse(boxString, false, boxParserMonitor);
+	}
 
-			public void handleMessage(int errorCode, int[] msgLocation,
-					int[] errorLocation, String filename, String[] errorInfo) {
-				Activator.getInstance().writeErrorMsg("box term is invalid");
-			}
+	private void initializeBoxParser() {
+		if (boxParser == null) {
+			boxParser = new BoxParseController();
+			IMessageHandler handler = new IMessageHandler() {
 
-		};
-		IProgressMonitor monitor = new NullProgressMonitor();
-		parseController.initialize(path, project, handler);
-		return (IBox) parseController.parse(boxString, false, monitor);
+				public void handleMessage(int errorCode, int[] msgLocation,
+						int[] errorLocation, String filename, String[] errorInfo) {
+					Activator.getInstance()
+							.writeErrorMsg("box term is invalid");
+				}
+
+			};
+			boxParserMonitor = new NullProgressMonitor();
+			boxParser.initialize(path, project, handler);
+		}
 	}
 
 	public Object parseObject(String objectString) {
-		IParseController parseController = objectParser; 
-		IProgressMonitor monitor = new NullProgressMonitor();
-		IMessageHandler handler = new IMessageHandler() {
-
-			public void handleMessage(int errorCode, int[] msgLocation,
-					int[] errorLocation, String filename, String[] errorInfo) {
-				StringBuffer buf = new StringBuffer();
-				buf.append("parse error: ");
-				for (int i = 0; i < errorInfo.length; i++) {
-					buf.append(errorInfo[i].toString());
-					if (i < errorInfo.length - 1) {
-					  buf.append(", ");
-					}
-				}
-				Activator.getInstance().writeErrorMsg(buf.toString());
-			}
-
-		};
-		parseController.initialize(path, project, handler);
-		return parseController.parse(objectString, false, monitor);
+		initializeObjectParser(objectParser);
+		return objectParser.parse(objectString, false, objectParserMonitor);
 	}
 
+	private void initializeObjectParser(IParseController parseController) {
+		if (objectParserMonitor == null) {
+			objectParserMonitor = new NullProgressMonitor();
+			IMessageHandler handler = new IMessageHandler() {
+
+				public void handleMessage(int errorCode, int[] msgLocation,
+						int[] errorLocation, String filename, String[] errorInfo) {
+					StringBuffer buf = new StringBuffer();
+					buf.append("parse error: ");
+					for (int i = 0; i < errorInfo.length; i++) {
+						buf.append(errorInfo[i].toString());
+						if (i < errorInfo.length - 1) {
+							buf.append(", ");
+						}
+					}
+					Activator.getInstance().writeErrorMsg(buf.toString());
+				}
+
+			};
+			parseController.initialize(path, project, handler);
+		}
+	}
 }
