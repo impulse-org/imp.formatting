@@ -162,6 +162,8 @@ public class Parser extends DefaultHandler {
 		if (rule.getBoxAst() != null) {
 			rule.setPatternString(BoxFactory.extractText(rule.getBoxAst()));
 			rule.setPatternAst(parseObject(rule.getPatternString()));
+			System.err.println("pattern string:" + rule.getPatternString());
+			System.err.println("pattern ast toString:" + rule.getPatternAst());
 		}
 	}
 
@@ -176,47 +178,43 @@ public class Parser extends DefaultHandler {
 	}
 
 	private void initializeBoxParser() {
-		if (boxParser == null) {
-			boxParser = new BoxParseController();
-			IMessageHandler handler = new IMessageHandler() {
+		boxParser = new BoxParseController();
+		IMessageHandler handler = new IMessageHandler() {
 
-				public void handleMessage(int errorCode, int[] msgLocation,
-						int[] errorLocation, String filename, String[] errorInfo) {
-					Activator.getInstance()
-							.writeErrorMsg("box term is invalid");
-				}
+			public void handleMessage(int errorCode, int[] msgLocation,
+					int[] errorLocation, String filename, String[] errorInfo) {
+				Activator.getInstance().writeErrorMsg("box term is invalid");
+			}
 
-			};
-			boxParserMonitor = new NullProgressMonitor();
-			boxParser.initialize(path, project, handler);
-		}
+		};
+		boxParserMonitor = new NullProgressMonitor();
+		boxParser.initialize(path, project, handler);
 	}
 
 	public Object parseObject(String objectString) {
 		initializeObjectParser(objectParser);
+
 		return objectParser.parse(objectString, false, objectParserMonitor);
 	}
 
 	private void initializeObjectParser(IParseController parseController) {
-		if (objectParserMonitor == null) {
-			objectParserMonitor = new NullProgressMonitor();
-			IMessageHandler handler = new IMessageHandler() {
+		objectParserMonitor = new NullProgressMonitor();
+		IMessageHandler handler = new IMessageHandler() {
 
-				public void handleMessage(int errorCode, int[] msgLocation,
-						int[] errorLocation, String filename, String[] errorInfo) {
-					StringBuffer buf = new StringBuffer();
-					buf.append("parse error: ");
-					for (int i = 0; i < errorInfo.length; i++) {
-						buf.append(errorInfo[i].toString());
-						if (i < errorInfo.length - 1) {
-							buf.append(", ");
-						}
+			public void handleMessage(int errorCode, int[] msgLocation,
+					int[] errorLocation, String filename, String[] errorInfo) {
+				StringBuffer buf = new StringBuffer();
+				buf.append("parse error: ");
+				for (int i = 0; i < errorInfo.length; i++) {
+					buf.append(errorInfo[i].toString());
+					if (i < errorInfo.length - 1) {
+						buf.append(", ");
 					}
-					Activator.getInstance().writeErrorMsg(buf.toString());
 				}
+				Activator.getInstance().writeErrorMsg(buf.toString());
+			}
 
-			};
-			parseController.initialize(path, project, handler);
-		}
+		};
+		parseController.initialize(path, project, handler);
 	}
 }
