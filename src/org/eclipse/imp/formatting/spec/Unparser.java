@@ -50,7 +50,6 @@ public class Unparser {
 			
 			String result = output.toString();
 			
-			System.err.println("result of output:" + result);
 			output.close();
 			return result;
 		} catch(IOException ie) {

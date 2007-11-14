@@ -70,6 +70,10 @@ public class Parser extends DefaultHandler {
 
 	private IProgressMonitor objectParserMonitor;
 
+	private IMessageHandler handler;
+
+	private String currenObjectString;
+
 	public Parser(IPath path, ISourceProject project) throws ModelException {
 		this.path = path;
 		this.spec = new Specification();
@@ -137,7 +141,9 @@ public class Parser extends DefaultHandler {
 			spec.addRule(tmpRule);
 		} else if (qName.equals("box")) {
 			try {
-				parseBoxAndObject(tmpContents, tmpRule);
+				if (tmpRule != null) {
+				  parseBoxAndObject(tmpContents, tmpRule);
+				}
 			} catch (ParseException e) {
 				// TODO It is not much of a problem if the box expression does
 				// not parse,
@@ -162,8 +168,6 @@ public class Parser extends DefaultHandler {
 		if (rule.getBoxAst() != null) {
 			rule.setPatternString(BoxFactory.extractText(rule.getBoxAst()));
 			rule.setPatternAst(parseObject(rule.getPatternString()));
-			System.err.println("pattern string:" + rule.getPatternString());
-			System.err.println("pattern ast toString:" + rule.getPatternAst());
 		}
 	}
 
@@ -178,43 +182,50 @@ public class Parser extends DefaultHandler {
 	}
 
 	private void initializeBoxParser() {
-		boxParser = new BoxParseController();
-		IMessageHandler handler = new IMessageHandler() {
+		if (boxParser == null) {
+			boxParser = new BoxParseController();
+			IMessageHandler handler = new IMessageHandler() {
 
-			public void handleMessage(int errorCode, int[] msgLocation,
-					int[] errorLocation, String filename, String[] errorInfo) {
-				Activator.getInstance().writeErrorMsg("box term is invalid");
-			}
+				public void handleMessage(int errorCode, int[] msgLocation,
+						int[] errorLocation, String filename, String[] errorInfo) {
+					Activator.getInstance()
+							.writeErrorMsg("box term is invalid");
+				}
 
-		};
-		boxParserMonitor = new NullProgressMonitor();
-		boxParser.initialize(path, project, handler);
+			};
+			boxParserMonitor = new NullProgressMonitor();
+			boxParser.initialize(path, project, handler);
+		}
 	}
 
 	public Object parseObject(String objectString) {
 		initializeObjectParser(objectParser);
 
+		this.currenObjectString = objectString;
+		
 		return objectParser.parse(objectString, false, objectParserMonitor);
 	}
 
 	private void initializeObjectParser(IParseController parseController) {
-		objectParserMonitor = new NullProgressMonitor();
-		IMessageHandler handler = new IMessageHandler() {
-
-			public void handleMessage(int errorCode, int[] msgLocation,
-					int[] errorLocation, String filename, String[] errorInfo) {
-				StringBuffer buf = new StringBuffer();
-				buf.append("parse error: ");
-				for (int i = 0; i < errorInfo.length; i++) {
-					buf.append(errorInfo[i].toString());
-					if (i < errorInfo.length - 1) {
-						buf.append(", ");
-					}
-				}
-				Activator.getInstance().writeErrorMsg(buf.toString());
-			}
-
-		};
-		parseController.initialize(path, project, handler);
+		if (objectParserMonitor == null) {
+			objectParserMonitor = new NullProgressMonitor();
+			handler = new IMessageHandler() {
+			
+							public void handleMessage(int errorCode, int[] msgLocation,
+									int[] errorLocation, String filename, String[] errorInfo) {
+								StringBuffer buf = new StringBuffer();
+								buf.append("parse error in object language code \"");
+								buf.append(currenObjectString);
+								buf.append("\" @");
+								for (int i = 0; i < errorLocation.length; i++) {
+									if (i != 0) buf.append(", ");
+									buf.append(errorLocation[i]);
+								}
+								Activator.getInstance().writeErrorMsg(buf.toString());
+							}
+			
+						};
+			parseController.initialize(path, project, handler);
+		}
 	}
 }

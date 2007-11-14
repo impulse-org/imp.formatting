@@ -87,7 +87,7 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 		if (ast != null) {
 			String box = transformer.transformToBox(content, ast);
 			try {
-				return BoxFactory.fastbox2text(box);
+				return BoxFactory.box2text(box);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

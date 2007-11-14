@@ -24,7 +24,11 @@ public class Matcher {
 		return (type1 == null && type2 == null) || type1.equals(type2);
 	}
 
+	
 	public boolean match(Object pattern, Object object, VariableEnvironment environment) {
+//		System.err.println("matching object: " + object);
+//		System.err.println("to pattern: " + pattern);
+		
 		if (adapter.isMetaVariable(pattern)) {
 			environment.put(pattern.toString(), object);
 			return true;

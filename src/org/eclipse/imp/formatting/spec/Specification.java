@@ -32,6 +32,10 @@ public class Specification {
 		rules.add(rule);
 	}
 	
+	public void addRule(int index, Rule rule) {
+		rules.add(index, rule);
+	}
+	
 	public void removeRule(int index) {
 		rules.remove(index);
 	}

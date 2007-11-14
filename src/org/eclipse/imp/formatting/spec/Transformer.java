@@ -87,7 +87,7 @@ public class Transformer {
 		transform(source, ast);
 		String box = boxes.get(ast);
 		boxes.clear();
-		return box;
+		return "V vs=2 ["+box+"]";
 	}
 
 	/**
@@ -127,7 +127,7 @@ public class Transformer {
 			}
 		}
 
-		boxes.put(ast, builder.defaultWrapper(source, kids, boxes));
+		boxes.put(ast, builder.defaultWrapper(source, ast, kids, boxes));
 		return;
 	}
 

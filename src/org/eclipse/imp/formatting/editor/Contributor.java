@@ -9,11 +9,9 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchActionConstants;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
-import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.ide.IDEActionFactory;
-import org.eclipse.ui.part.MultiPageEditorActionBarContributor;
+import org.eclipse.ui.part.EditorActionBarContributor;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 
@@ -23,7 +21,7 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
  * editor. Multi-page contributor replaces the contributors for the individual
  * editors in the multi-page editor.
  */
-public class Contributor extends MultiPageEditorActionBarContributor {
+public class Contributor extends EditorActionBarContributor {
 	private IEditorPart activeEditorPart;
 
 	/**
@@ -90,5 +88,32 @@ public class Contributor extends MultiPageEditorActionBarContributor {
 
 	public void contributeToToolBar(IToolBarManager manager) {
 		manager.add(new Separator());
+		manager.add(new Action("Add rule") {
+			public void run() {
+				IEditorPart editor = getPage().getActiveEditor();
+				if (editor instanceof Editor) {
+					Editor e = (Editor) editor;
+					e.newRule();
+				}
+			}
+		});
+		manager.add(new Action("Delete rule") {
+			public void run() {
+				IEditorPart editor = getPage().getActiveEditor();
+				if (editor instanceof Editor) {
+					Editor e = (Editor) editor;
+					e.deleteRule();
+				}
+			}
+		});
+		manager.add(new Action("Format rule") {
+			public void run() {
+				IEditorPart editor = getPage().getActiveEditor();
+				if (editor instanceof Editor) {
+					Editor e = (Editor) editor;
+					e.formatRule();
+				}
+			}
+		});
 	}
 }

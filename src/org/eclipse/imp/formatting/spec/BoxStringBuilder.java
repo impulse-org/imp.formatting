@@ -81,12 +81,9 @@ public class BoxStringBuilder {
 	 * @param boxes
 	 * @return
 	 */
-	public String defaultWrapper(String source, Object[] kids, BoxEnvironment boxes) {
-		if (isCommaList(source, kids)) {
-			return buildListBox(source, "H", kids, boxes);
-		}
-		else if (isSemiColonList(source, kids)) {
-			return buildListBox(source, "V", kids, boxes);
+	public String defaultWrapper(String source, Object ast, Object[] kids, BoxEnvironment boxes) {
+		if (adapter.isList(ast)) {
+			return buildList(source,  kids, boxes);
 		}
 		else if (isExpressionStructured(kids)) {
 			return buildBox(source, "H", kids, boxes);
@@ -97,27 +94,6 @@ public class BoxStringBuilder {
 		else {
 			return buildBox(source, "V", kids, boxes);
 		}
-	}
-
-	private boolean isSemiColonList(String source, Object[] kids) {
-		return isSepList(source, kids, ";");
-	}
-
-	private boolean isCommaList(String source, Object[] kids) {
-		return isSepList(source, kids, ",");
-	}
-
-	private boolean isSepList(String source, Object[] kids, String sep) {
-		int len = kids.length;
-		if (len == 3) {
-			String lit = literal(source, kids[1]);
-			
-			if (lit.equals("\"" + sep + "\"")) {
-				return true;
-			}
-		}
-		
-		return false;
 	}
 
 	private boolean isExpressionStructured(Object[] kids) {
@@ -185,21 +161,18 @@ public class BoxStringBuilder {
 		}
 	}
 
-	private String buildListBox(String source, String op, Object[] kids, BoxEnvironment boxes) {
+	private String buildList(String source, Object[] kids, BoxEnvironment boxes) {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append(op + " [");
 		
-		for (int i = 0; i < kids.length - 1; i++) {
+		for (int i = 0; i < kids.length; i++) {
+			if (i != 0) {
+				appendSeparatorsAndComments(buffer, source, kids[i-1], kids[i]);
+			}
 			String box = boxes.get(kids[i]);
-			String sep = boxes.get(kids[++i]);
 			assert box != null;
-			buffer.append("H hs=0 [" + box + " " + sep + "]");
+			buffer.append(box);
 		}
 		
-		String box = boxes.get(kids[kids.length-1]);
-		buffer.append(box);
-		
-		buffer.append("]");
 		return buffer.toString();
 	}
 
