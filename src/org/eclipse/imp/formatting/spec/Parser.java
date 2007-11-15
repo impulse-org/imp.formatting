@@ -17,7 +17,6 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.imp.box.builders.BoxFactory;
 import org.eclipse.imp.box.parser.BoxParseController;
 import org.eclipse.imp.box.parser.Ast.IBox;
-import org.eclipse.imp.formatting.Activator;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
@@ -46,8 +45,6 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class Parser extends DefaultHandler {
 
-	private static final String PROBLEM_TYPE = "org.eclipse.imp.formatting.parsing";
-
 	static protected SAXParserFactory spf = SAXParserFactory.newInstance();
 
 	protected Specification spec;
@@ -72,12 +69,15 @@ public class Parser extends DefaultHandler {
 
 	private IMessageHandler handler;
 
-	private String currenObjectString;
-
-	public Parser(IPath path, ISourceProject project) throws ModelException {
+	public Parser(IPath path, ISourceProject project, IMessageHandler handler) throws ModelException {
 		this.path = path;
 		this.spec = new Specification();
 		this.project = project;
+		this.handler = handler;
+	}
+	
+	public void setMessageHandler(IMessageHandler handler) {
+		this.handler = handler;
 	}
 
 	/**
@@ -184,48 +184,20 @@ public class Parser extends DefaultHandler {
 	private void initializeBoxParser() {
 		if (boxParser == null) {
 			boxParser = new BoxParseController();
-			IMessageHandler handler = new IMessageHandler() {
-
-				public void handleMessage(int errorCode, int[] msgLocation,
-						int[] errorLocation, String filename, String[] errorInfo) {
-					Activator.getInstance()
-							.writeErrorMsg("box term is invalid");
-				}
-
-			};
 			boxParserMonitor = new NullProgressMonitor();
-			boxParser.initialize(path, project, handler);
 		}
+		boxParser.initialize(path, project, handler);
 	}
 
 	public Object parseObject(String objectString) {
 		initializeObjectParser(objectParser);
-
-		this.currenObjectString = objectString;
-		
 		return objectParser.parse(objectString, false, objectParserMonitor);
 	}
 
 	private void initializeObjectParser(IParseController parseController) {
 		if (objectParserMonitor == null) {
 			objectParserMonitor = new NullProgressMonitor();
-			handler = new IMessageHandler() {
-			
-							public void handleMessage(int errorCode, int[] msgLocation,
-									int[] errorLocation, String filename, String[] errorInfo) {
-								StringBuffer buf = new StringBuffer();
-								buf.append("parse error in object language code \"");
-								buf.append(currenObjectString);
-								buf.append("\" @");
-								for (int i = 0; i < errorLocation.length; i++) {
-									if (i != 0) buf.append(", ");
-									buf.append(errorLocation[i]);
-								}
-								Activator.getInstance().writeErrorMsg(buf.toString());
-							}
-			
-						};
-			parseController.initialize(path, project, handler);
 		}
+		parseController.initialize(path, project, handler);
 	}
 }

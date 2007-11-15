@@ -144,6 +144,21 @@ public class BoxStringBuilder {
 		return buffer.toString();
 	}
 	
+	public static String exampleToBox(String source) {
+		String nonWhitespace[] = source.split("[\\s]");
+		StringBuffer result = new StringBuffer();
+		
+		result.append("HV [");
+		
+		for (int i = 0; i < nonWhitespace.length; i++) {
+			String word = nonWhitespace[i];
+			result.append("\"" + word.replaceAll("\"","\\\"") + "\"");
+		}
+	
+		result.append("]");
+		return result.toString();
+	}
+	
 	// TODO This is a major workaround for retrieving tokens that can not be found as leaves to any AST.
 	// It works well for list separators, but for comments it does not work. This will just find any non-white space
 	// characters in between two nodes, but comments contain non-whitespace characters. These are removed by this code.

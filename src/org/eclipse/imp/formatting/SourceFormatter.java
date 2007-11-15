@@ -2,6 +2,8 @@ package org.eclipse.imp.formatting;
 
 import java.io.IOException;
 
+import lpg.runtime.IMessageHandler;
+
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.box.builders.BoxFactory;
@@ -14,6 +16,7 @@ import org.eclipse.imp.formatting.spec.Transformer;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.imp.lpg.parser.ParseController;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.model.ModelFactory.ModelException;
@@ -34,6 +37,8 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 	private Language fLanguage;
 
 	private Transformer transformer;
+	
+	private IMessageHandler handler;
 
 	public void formatterStarts(String initialIndentation) {
 		initialize();
@@ -47,7 +52,7 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 		try {
 			adapter = b.getASTAdapter();
 			IPath fsp = b.getSpecificationPath();
-			Parser parser = new Parser(fsp, getActiveProject());
+			Parser parser = new Parser(fsp, getActiveProject(), handler);
 			Specification spec = parser.parse(fsp);
 			transformer = new Transformer(spec, adapter);
 		} catch (ModelException e) {

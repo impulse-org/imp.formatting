@@ -3,6 +3,8 @@ package org.eclipse.imp.formatting.editor;
 import java.io.IOException;
 import java.util.Iterator;
 
+import lpg.runtime.IMessageHandler;
+
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -11,6 +13,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.box.builders.BoxFactory;
+import org.eclipse.imp.formatting.spec.BoxStringBuilder;
 import org.eclipse.imp.formatting.spec.ExtensionPointBinder;
 import org.eclipse.imp.formatting.spec.ParseException;
 import org.eclipse.imp.formatting.spec.Parser;
@@ -24,6 +27,8 @@ import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.dialogs.IInputValidator;
+import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.custom.TableEditor;
@@ -337,7 +342,11 @@ public class Editor extends MultiPageEditorPart implements
 			IPath fullFilePath = project.getLocation().append(path);
 			ISourceProject sp = ModelFactory.open(project);
 
-			parser = new Parser(fullFilePath, sp);
+			parser = new Parser(fullFilePath, sp, new IMessageHandler() {
+				public void handleMessage(int errorCode, int[] msgLocation, int[] errorLocation, String filename, String[] errorInfo) {
+				}
+			});
+			
 			String editorText = editor.getDocumentProvider().getDocument(
 					editor.getEditorInput()).get();
 			model = parser.parse(editorText);
@@ -461,6 +470,7 @@ public class Editor extends MultiPageEditorPart implements
 			TableItem item = new TableItem(ruleTable, SWT.NONE, i);
 			initRuleTableItem(r, item);
 			ruleTable.select(i);
+			activeRule = r;
 		} else {
 			model.addRule(r);
 			TableItem item = new TableItem(ruleTable, SWT.NONE);
@@ -504,7 +514,7 @@ public class Editor extends MultiPageEditorPart implements
 				if (formatted != null) {
 					activeRule.setBoxString(formatted);
 					int i = model.getRules().indexOf(activeRule);
-					ruleTable.getItem(i).setText(formatted);
+					ruleTable.getItem(i).setText(EDIT_COLUMN, formatted);
 					setRulesModified(true);
 				}
 			} catch (IOException e) {
@@ -515,6 +525,41 @@ public class Editor extends MultiPageEditorPart implements
 				e.printStackTrace();
 			}
 
+		}
+	}
+
+	public void addRuleFromExample() {
+		disposeTableEditor();
+		
+		IInputValidator v = new IInputValidator() {
+			public String isValid(String newText) {
+				if (parser.parseObject(newText) != null) {
+					return null;
+				}
+				else {
+					return "Not a valid string";
+				}
+			}
+		};
+		
+		InputDialog dialog = new InputDialog(getContainer().getShell(),
+				"provide your example", "",null, v);
+		
+		dialog.setBlockOnOpen(true);
+		dialog.open();
+		
+		if (dialog.getReturnCode() == dialog.OK) {
+			String result = dialog.getValue();
+			if (result != null) {
+				newRule();
+				Rule rule = activeRule;
+				String box = BoxStringBuilder.exampleToBox(result);
+				rule.setBoxString(box);
+				int i = model.getRules().indexOf(activeRule);
+				TableItem item = ruleTable.getItem(i);
+				updateRuleTableItem(item, box);
+				setRulesModified(true);
+			}
 		}
 	}
 }

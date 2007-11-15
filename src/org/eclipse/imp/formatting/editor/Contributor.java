@@ -6,6 +6,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchActionConstants;
@@ -97,6 +98,15 @@ public class Contributor extends EditorActionBarContributor {
 				}
 			}
 		});
+		manager.add(new Action("Add rule...") {
+			public void run() {
+				IEditorPart editor = getPage().getActiveEditor();
+				if (editor instanceof Editor) {
+					Editor e = (Editor) editor;
+					e.addRuleFromExample();
+				}
+			}
+		});
 		manager.add(new Action("Delete rule") {
 			public void run() {
 				IEditorPart editor = getPage().getActiveEditor();
@@ -115,5 +125,6 @@ public class Contributor extends EditorActionBarContributor {
 				}
 			}
 		});
+		
 	}
 }
