@@ -41,6 +41,10 @@ public class Matcher {
 				return false;
 			}
 			
+			if (kids1.length == 0) {
+				return pattern.equals(object);
+			}
+			
 			for (int i = 0; i < kids1.length; i++) {
 				if (!match(kids1[i], kids2[i], environment)) {
 					return false;
