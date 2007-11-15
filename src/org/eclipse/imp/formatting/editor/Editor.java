@@ -25,6 +25,7 @@ import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
@@ -72,9 +73,11 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 public class Editor extends MultiPageEditorPart implements
 		IResourceChangeListener {
 	private static final int PlainEditorIndex = 0; // must be 0
+
 	private static final int RuleEditorIndex = 1;
+
 	private static final int ExampleEditorIndex = 2;
-	
+
 	protected TextEditor editor;
 
 	protected Text example;
@@ -93,6 +96,12 @@ public class Editor extends MultiPageEditorPart implements
 
 	private TableEditor tableEditor;
 
+	private final int STATUS_COLUMN = 0;
+
+	private final int EDIT_COLUMN = 1;
+
+	private final int PREVIEW_COLUMN = 2;
+
 	public Editor() {
 		super();
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
@@ -108,7 +117,9 @@ public class Editor extends MultiPageEditorPart implements
 			editor = new TextEditor() {
 				@Override
 				protected void setDocumentProvider(IDocumentProvider provider) {
-					System.err.println("somebodies overwriting documentprovider... to:" + provider);
+					System.err
+							.println("somebodies overwriting documentprovider... to:"
+									+ provider);
 					super.setDocumentProvider(provider);
 				}
 			};
@@ -120,8 +131,6 @@ public class Editor extends MultiPageEditorPart implements
 					"Error creating nested text editor", null, e.getStatus());
 		}
 	}
-
-	
 
 	private void createRuleActions() {
 		editor.setAction("newRule", new Action() {
@@ -140,20 +149,24 @@ public class Editor extends MultiPageEditorPart implements
 	private void createRuleEditor(Specification model) {
 		Composite parent = new Composite(getContainer(), SWT.NONE);
 		parent.setLayout(new FillLayout(SWT.HORIZONTAL));
-		
-		ruleTable = new Table(parent, SWT.MULTI | SWT.FULL_SELECTION | SWT.HIDE_SELECTION);
+
+		ruleTable = new Table(parent, SWT.MULTI | SWT.FULL_SELECTION
+				| SWT.HIDE_SELECTION);
 		ruleTable.setLinesVisible(true);
 		ruleTable.setHeaderVisible(true);
 
+		TableColumn status = new TableColumn(ruleTable, SWT.NONE);
+		status.setText("Status");
+		status.setResizable(true);
+
 		TableColumn box = new TableColumn(ruleTable, SWT.NONE);
-		box.setText("Box rules");
+		box.setText("Box");
 		box.setResizable(true);
-		
+
 		TableColumn preview = new TableColumn(ruleTable, SWT.NONE);
-		preview.setText("Previews");
+		preview.setText("Preview");
 		preview.setResizable(true);
 
-		
 		Iterator<Rule> iter = model.ruleIterator();
 
 		while (iter.hasNext()) {
@@ -162,16 +175,16 @@ public class Editor extends MultiPageEditorPart implements
 			initRuleTableItem(rule, item);
 		}
 
+		status.pack();
 		box.pack();
 		preview.pack();
 
 		tableEditor = new TableEditor(ruleTable);
 		tableEditor.horizontalAlignment = SWT.LEFT;
+		tableEditor.verticalAlignment = SWT.TOP;
 		tableEditor.grabHorizontal = true;
 		tableEditor.grabVertical = true;
 		tableEditor.minimumWidth = 50;
-		final int EDITCOLUMN = 0;
-		final int PREVIEWCOLUMN = 1;
 
 		ruleTable.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
@@ -186,42 +199,40 @@ public class Editor extends MultiPageEditorPart implements
 
 				activeRule = (Rule) item.getData();
 
-				final Text newEditor = new Text(ruleTable, SWT.MULTI | SWT.WRAP | SWT.BORDER);
-				newEditor.setText(item.getText(EDITCOLUMN));
+				final Text newEditor = new Text(ruleTable, SWT.MULTI | SWT.WRAP
+						| SWT.BORDER);
+				newEditor.setText(item.getText(EDIT_COLUMN));
 				newEditor.addModifyListener(new ModifyListener() {
 					public void modifyText(ModifyEvent e) {
 						Text text = (Text) tableEditor.getEditor();
 						String b = text.getText();
 						TableItem i = tableEditor.getItem();
-						i.setText(EDITCOLUMN, b);
+						i.setText(EDIT_COLUMN, b);
 						Rule rule = (Rule) tableEditor.getItem().getData();
-						
-						if (parser.parseBox(b) != null) {
-							i.setText(PREVIEWCOLUMN, getFormattedBox(b));
-						}
-						
+
 						rule.setBoxString(b);
-						
+						updateRuleTableItem(i, b);
+
 						if (!rulesModified) {
-						  rulesModified = true;
-						  firePropertyChange(PROP_DIRTY);
+							rulesModified = true;
+							firePropertyChange(PROP_DIRTY);
 						}
+
 					}
 				});
-				
+
 				newEditor.addFocusListener(new FocusAdapter() {
 					public void focusLost(FocusEvent e) {
-					  newEditor.dispose();
+						newEditor.dispose();
 					}
 				});
-				
+
 				newEditor.setFocus();
-				tableEditor.setEditor(newEditor, item, EDITCOLUMN);
+				tableEditor.setEditor(newEditor, item, EDIT_COLUMN);
 			}
-			
-			
+
 		});
-		
+
 		addPage(RuleEditorIndex, parent);
 		setPageText(RuleEditorIndex, "Rules");
 
@@ -230,17 +241,30 @@ public class Editor extends MultiPageEditorPart implements
 
 	private void initRuleTableItem(final Rule rule, TableItem item) {
 		item.setData(rule);
-		String s = rule.getBoxString();
-		item.setText(0, s == null ? "\n" : s);
-
-		if (s != null && parser.parseBox(rule.getBoxString()) != null) {
-			item.setText(1, getFormattedBox(rule.getBoxString()));
-		}
+		updateRuleTableItem(item, rule.getBoxString());
 	}
 
-	
+	private void updateRuleTableItem(TableItem item, String boxString) {
+		item.setText(EDIT_COLUMN, boxString == null ? "\n" : boxString);
 
-	
+		if (boxString != null) {
+			if (parser.parseBox(boxString) != null) {
+				String formatted = getFormattedBox(boxString);
+				item.setText(PREVIEW_COLUMN, formatted);
+
+				if (parser.parseObject(formatted) == null) {
+					item.setText(STATUS_COLUMN, "error in preview");
+				} else {
+					item.setText(STATUS_COLUMN, "ok");
+				}
+			}
+			else {
+			   item.setText(STATUS_COLUMN, "error in box");
+			}
+		} else {
+			item.setText(STATUS_COLUMN, "no box");
+		}
+	}
 
 	protected String getFormattedBox(String boxString) {
 		try {
@@ -268,7 +292,7 @@ public class Editor extends MultiPageEditorPart implements
 				model.setExample(example.getText());
 				exampleModified = true;
 				firePropertyChange(PROP_DIRTY);
-				
+
 				Object ast = parser.parseObject(example.getText());
 				if (ast != null) {
 					model.setExampleAst(ast);
@@ -290,11 +314,11 @@ public class Editor extends MultiPageEditorPart implements
 
 	protected void createPages() {
 		createPlainEditor();
-		
+
 		model = updateModelFromFile();
 		createRuleEditor(model);
 		createExampleViewer();
-	
+
 		updateExample();
 
 		rulesModified = false;
@@ -323,7 +347,7 @@ public class Editor extends MultiPageEditorPart implements
 		} catch (ModelFactory.ModelException e) {
 			System.err.println("model error:" + e);
 		}
-		
+
 		return new Specification();
 	}
 
@@ -354,7 +378,7 @@ public class Editor extends MultiPageEditorPart implements
 			exampleModified = false;
 		}
 	}
-	
+
 	public void dispose() {
 		ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
 		super.dispose();
@@ -443,7 +467,7 @@ public class Editor extends MultiPageEditorPart implements
 			initRuleTableItem(r, item);
 			ruleTable.select(ruleTable.getChildren().length);
 		}
-		
+
 		setRulesModified(true);
 	}
 
@@ -458,7 +482,7 @@ public class Editor extends MultiPageEditorPart implements
 		rulesModified = true;
 		firePropertyChange(PROP_DIRTY);
 	}
-	
+
 	public void deleteRule() {
 		if (activeRule != null) {
 			disposeTableEditor();
@@ -469,7 +493,7 @@ public class Editor extends MultiPageEditorPart implements
 			setRulesModified(true);
 		}
 	}
-	
+
 	public void formatRule() {
 		if (activeRule != null) {
 			disposeTableEditor();
@@ -490,7 +514,7 @@ public class Editor extends MultiPageEditorPart implements
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+
 		}
 	}
 }
