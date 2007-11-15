@@ -288,7 +288,7 @@ public class Editor extends MultiPageEditorPart implements
 	public void createExampleViewer() {
 		Composite parent = new Composite(getContainer(), SWT.NONE);
 		parent.setLayout(new FillLayout());
-		example = new Text(parent, SWT.V_SCROLL | SWT.WRAP | SWT.BORDER);
+		example = new Text(parent, SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
 
 		example.setFont(new Font(example.getDisplay(), "Monospace", 10, 0));
 
