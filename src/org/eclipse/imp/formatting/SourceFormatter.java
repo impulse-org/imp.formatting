@@ -104,6 +104,7 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 			}
 		}
 		else {
+			Activator.getInstance().writeErrorMsg("Code could not be formatted due to parse error(s)");
 			return content;
 		}
 	}
