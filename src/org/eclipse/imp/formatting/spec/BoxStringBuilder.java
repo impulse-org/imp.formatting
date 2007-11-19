@@ -4,8 +4,6 @@ import java.util.Iterator;
 
 import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
 
-import lpg.runtime.IAst;
-
 /**
  * I would like to make something that constructs Box AST's directly. For now,
  * I will build strings to represent the boxes, which will be parsed by the

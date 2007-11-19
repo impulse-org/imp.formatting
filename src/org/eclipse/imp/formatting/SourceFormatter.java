@@ -16,7 +16,6 @@ import org.eclipse.imp.formatting.spec.Transformer;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
-import org.eclipse.imp.lpg.parser.ParseController;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.model.ModelFactory.ModelException;
