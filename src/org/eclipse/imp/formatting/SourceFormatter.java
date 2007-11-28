@@ -39,6 +39,8 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 	
 	private IMessageHandler handler;
 
+	private Parser parser;
+	
 	public void formatterStarts(String initialIndentation) {
 		initialize();
 	}
@@ -51,7 +53,7 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 			
 			adapter = b.getASTAdapter();
 			IPath fsp = b.getSpecificationPath();
-			Parser parser = new Parser(fsp, getActiveProject(), handler);
+			parser = new Parser(fsp, getActiveProject(), handler);
 			Specification spec = parser.parse(fsp);
 			transformer = new Transformer(spec, adapter);
 		} catch (ModelException e) {
@@ -87,9 +89,9 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 		return ((IFileEditorInput) input).getFile();
 	}
 
-	public String format(IParseController parseController, String content,
+	public String format(IParseController ignored, String content,
 			boolean isLineStart, String indentation, int[] positions) {
-		Object ast = parseController.getCurrentAst();
+		Object ast = parser.parseObject(content);
 
 		if (ast != null) {
 			String box = transformer.transformToBox(content, ast);
