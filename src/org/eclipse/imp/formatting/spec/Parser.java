@@ -154,9 +154,15 @@ public class Parser extends DefaultHandler {
 			spec.setExampleAst(parseObject(tmpContents));
 		} else if (qName.equals("language")) {
 			spec.setLanguage(tmpContents);
-			objectLanguage = LanguageRegistry.findLanguage(tmpContents);
-			ExtensionPointBinder b = new ExtensionPointBinder(objectLanguage);
-			objectParser = b.getObjectParser();
+			
+			try {
+				objectLanguage = LanguageRegistry.findLanguage(tmpContents);
+				ExtensionPointBinder b = new ExtensionPointBinder(objectLanguage);
+				objectParser = b.getObjectParser();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 

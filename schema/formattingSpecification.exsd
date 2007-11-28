@@ -51,6 +51,33 @@
                </appInfo>
             </annotation>
          </attribute>
+         <attribute name="astAdapter" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn="org.eclipse.imp.xform.pattern.matching.IASTAdapter"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="language" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="parseController" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn="org.eclipse.imp.parser.IParseController"/>
+               </appInfo>
+            </annotation>
+         </attribute>
       </complexType>
    </element>
 

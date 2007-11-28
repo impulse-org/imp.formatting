@@ -44,11 +44,11 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 	}
 
 	private void initialize() {
-		UniversalEditor ue = (UniversalEditor) getActiveEditor();
-		fLanguage = LanguageRegistry.findLanguage(ue.getEditorInput());
-		ExtensionPointBinder b = new ExtensionPointBinder(fLanguage);
-
 		try {
+			UniversalEditor ue = (UniversalEditor) getActiveEditor();
+			fLanguage = LanguageRegistry.findLanguage(ue.getEditorInput());
+			ExtensionPointBinder b = new ExtensionPointBinder(fLanguage);
+			
 			adapter = b.getASTAdapter();
 			IPath fsp = b.getSpecificationPath();
 			Parser parser = new Parser(fsp, getActiveProject(), handler);
@@ -61,6 +61,9 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

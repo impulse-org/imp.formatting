@@ -13,6 +13,7 @@ import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
+import org.osgi.framework.BundleException;
 
 public class ExtensionPointBinder {
 
@@ -24,13 +25,24 @@ public class ExtensionPointBinder {
 
 	private IPath specificationPath;
 
-	public ExtensionPointBinder(Language language) {
+	public ExtensionPointBinder(Language language) throws Exception {
 		fLanguage = language;
-		adapter = (IASTAdapter) ExtensionPointFactory.createExtensionPoint(
-				fLanguage, Activator.kPluginID, "astAdapter");
+		
+		adapter = (IASTAdapter) ExtensionPointFactory.createExtensionPointForElement(
+				fLanguage, Activator.kPluginID, "formattingSpecification", "astAdapter");
 
-		objectParser = (IParseController) ExtensionPointFactory
-				.createExtensionPoint(fLanguage, "parser");
+		if (adapter == null) {
+			throw new Exception("Can not find extension for astAdapter");
+		}
+		
+		objectParser = (IParseController) ExtensionPointFactory.createExtensionPointForElement(
+				fLanguage, Activator.kPluginID, "formattingSpecification", "parseController");
+
+		
+		if (objectParser == null) {
+			throw new Exception("Can not find extension for parser");
+		}
+		
 	}
 	
 	public Language getLanguage() {

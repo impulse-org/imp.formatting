@@ -364,26 +364,30 @@ public class Editor extends MultiPageEditorPart implements
 		Object ast = model.getExampleAst();
 
 		if (ast != null) {
-
-			Language objectLanguage = LanguageRegistry.findLanguage(model
-					.getLanguage());
-			ExtensionPointBinder b = new ExtensionPointBinder(objectLanguage);
-			Transformer t = new Transformer(model, b.getASTAdapter());
-			String box = t.transformToBox(model.getExample(), model
-					.getExampleAst());
-			String newExample = null;
-
 			try {
+				Language objectLanguage = LanguageRegistry.findLanguage(model
+						.getLanguage());
+				ExtensionPointBinder b = new ExtensionPointBinder(objectLanguage);
+				Transformer t = new Transformer(model, b.getASTAdapter());
+				String box = t.transformToBox(model.getExample(), model
+						.getExampleAst());
+				String newExample = null;
+
 				newExample = BoxFactory.box2text(box);
+				
+				example.setText(newExample);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (Exception e) {
+				// TODO: something useful
+				e.printStackTrace();
 			}
 
-			example.setText(newExample);
+		
 			exampleModified = false;
 		}
 	}
