@@ -344,6 +344,9 @@ public class Editor extends MultiPageEditorPart implements
 
 			parser = new Parser(fullFilePath, sp, new IMessageHandler() {
 				public void handleMessage(int errorCode, int[] msgLocation, int[] errorLocation, String filename, String[] errorInfo) {
+					System.err.println("parse error:");
+					System.err.println("\tline: " + errorLocation[IMessageHandler.START_LINE_INDEX]);
+					System.err.println("\tcolumn: " + errorLocation[IMessageHandler.START_COLUMN_INDEX]);
 				}
 			});
 			
