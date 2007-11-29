@@ -33,7 +33,7 @@ public class Transformer {
 	private Map<String, List<Rule>> ruleMap;
 
 	private Specification spec;
-
+	
 	public Transformer(Specification spec, IASTAdapter adapter) {
 		this.adapter = adapter;
 		this.matcher = new Matcher(adapter);
@@ -49,25 +49,29 @@ public class Transformer {
 	 * @param spec
 	 * @param adapter
 	 */
-	private void initializeRuleMap(Specification spec, IASTAdapter adapter) {
+	private void initializeRuleMap(Specification spec) {
 		ruleMap.clear();
 		Iterator<Rule> iter = spec.ruleIterator();
 		while (iter.hasNext()) {
 			Rule rule = iter.next();
-			Object pattern = rule.getPatternAst();
+			initRule(rule);
+		}
+	}
 
-			if (pattern != null) {
-				String outermost = adapter.getTypeOf(pattern);
-				System.err.println("registered rule for: " + outermost);
-				List<Rule> list = ruleMap.get(outermost);
+	private void initRule(Rule rule) {
+		Object pattern = rule.getPatternAst();
 
-				if (list == null) {
-					list = new LinkedList<Rule>();
-				}
-				list.add(rule);
+		if (pattern != null) {
+			String outermost = adapter.getTypeOf(pattern);
+			System.err.println("registered rule for: " + outermost);
+			List<Rule> list = ruleMap.get(outermost);
 
-				this.ruleMap.put(outermost, list);
+			if (list == null) {
+				list = new LinkedList<Rule>();
 			}
+			list.add(rule);
+
+			this.ruleMap.put(outermost, list);
 		}
 	}
 
@@ -84,7 +88,7 @@ public class Transformer {
 	 * @return
 	 */
 	public String transformToBox(String source, Object ast) {
-		initializeRuleMap(spec, adapter);
+		initializeRuleMap(spec);
 		transform(source, ast);
 		String box = boxes.get(ast);
 		boxes.clear();
@@ -114,7 +118,8 @@ public class Transformer {
 		for (int i = 0; i < kids.length; i++) {
 			transform(source, kids[i]);
 		}
-
+		
+//		System.err.println("mapping this node:" + adapter.getTypeOf(ast));
 		List<Rule> rules = findRules(ast);
 
 		if (!rules.isEmpty()) {

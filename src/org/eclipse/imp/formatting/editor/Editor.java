@@ -256,10 +256,13 @@ public class Editor extends MultiPageEditorPart implements
 			if (parser.parseBox(boxString) != null) {
 				String formatted = getFormattedBox(boxString);
 				item.setText(PREVIEW_COLUMN, formatted);
+				Object ast = parser.parseObject(formatted);
 
-				if (parser.parseObject(formatted) == null) {
+				if (ast == null) {
 					item.setText(STATUS_COLUMN, "error in preview");
 				} else {
+					Rule rule = (Rule) item.getData();
+					rule.setPatternAst(ast);
 					item.setText(STATUS_COLUMN, "ok");
 				}
 			}
@@ -364,9 +367,11 @@ public class Editor extends MultiPageEditorPart implements
 	}
 
 	private void reformatExample() {
-		Object ast = model.getExampleAst();
-
+		Object ast = parser.parseObject(model.getExample());
+	
 		if (ast != null) {
+			model.setExampleAst(ast);
+			
 			try {
 				Language objectLanguage = LanguageRegistry.findLanguage(model
 						.getLanguage());
