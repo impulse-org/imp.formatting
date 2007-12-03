@@ -29,8 +29,8 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
@@ -39,10 +39,16 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -191,6 +197,7 @@ public class Editor extends MultiPageEditorPart implements
 		tableEditor.grabVertical = true;
 		tableEditor.minimumWidth = 50;
 
+		ruleTable.setToolTipText("");
 		ruleTable.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				Control oldEditor = tableEditor.getEditor();
@@ -203,7 +210,7 @@ public class Editor extends MultiPageEditorPart implements
 					return;
 
 				activeRule = (Rule) item.getData();
-
+				
 				final Text newEditor = new Text(ruleTable, SWT.MULTI | SWT.WRAP
 						| SWT.BORDER);
 				newEditor.setText(item.getText(EDIT_COLUMN));
@@ -225,7 +232,62 @@ public class Editor extends MultiPageEditorPart implements
 
 					}
 				});
+				
+				
+				
+				Listener tooltipListener = new Listener() {
+				      Shell tip = null;
+				      Label label = null;
+				      Display display = ruleTable.getDisplay();
+				      Shell shell = ruleTable.getShell();
 
+				      public void handleEvent(Event event) {
+				        switch (event.type) {
+				        case SWT.Dispose:
+				        case SWT.KeyDown:
+				        case SWT.MouseMove: {
+				          if (tip == null)
+				            break;
+				          tip.dispose();
+				          tip = null;
+				          label = null;
+				          break;
+				        }
+				        case SWT.MouseHover: {
+				          TableItem item = ruleTable.getItem(new Point(event.x, event.y));
+				          if (item != null) {
+				            if (tip != null && !tip.isDisposed())
+				              tip.dispose();
+				            tip = new Shell(shell, SWT.ON_TOP | SWT.TOOL);
+				            tip.setLayout(new FillLayout());
+				            label = new Label(tip, SWT.NONE);
+				            label.setForeground(display
+				                .getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+				            label.setBackground(ruleTable.getDisplay()
+				                .getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+				            label.setData("_TABLEITEM", item);
+				            String text = (String) item.getData("tooltip");
+				            if (text != null) {
+				              label.setText(text);
+				            }
+//				            label.addListener(SWT.MouseExit, labelListener);
+//				            label.addListener(SWT.MouseDown, labelListener);
+				            Point size = tip.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+				            Rectangle rect = item.getBounds(0);
+				            Point pt = ruleTable.toDisplay(rect.x, rect.y);
+				            tip.setBounds(pt.x, pt.y, size.x, size.y);
+				            tip.setVisible(true);
+				          }
+				        }
+				        }
+				      }
+				    };
+				    
+				    ruleTable.addListener(SWT.KeyDown, tooltipListener);
+				    ruleTable.addListener(SWT.Dispose, tooltipListener);
+				    ruleTable.addListener(SWT.MouseHover, tooltipListener);
+				    ruleTable.addListener(SWT.MouseMove, tooltipListener);
+				    
 				newEditor.addFocusListener(new FocusAdapter() {
 					public void focusLost(FocusEvent e) {
 						newEditor.dispose();
@@ -235,7 +297,6 @@ public class Editor extends MultiPageEditorPart implements
 				newEditor.setFocus();
 				tableEditor.setEditor(newEditor, item, EDIT_COLUMN);
 			}
-
 		});
 
 		addPage(RuleEditorIndex, parent);
@@ -260,10 +321,12 @@ public class Editor extends MultiPageEditorPart implements
 
 				if (ast == null) {
 					item.setText(STATUS_COLUMN, "error in preview");
+					item.setData("tooltip", "");
 				} else {
 					Rule rule = (Rule) item.getData();
 					rule.setPatternAst(ast);
 					item.setText(STATUS_COLUMN, "ok");
+					item.setData("tooltip", ast.getClass().getName());
 				}
 			}
 			else {
@@ -560,7 +623,7 @@ public class Editor extends MultiPageEditorPart implements
 		dialog.setBlockOnOpen(true);
 		dialog.open();
 		
-		if (dialog.getReturnCode() == dialog.OK) {
+		if (dialog.getReturnCode() == Window.OK) {
 			String result = dialog.getValue();
 			if (result != null) {
 				newRule();
