@@ -150,7 +150,7 @@ public class BoxStringBuilder {
 		
 		for (int i = 0; i < nonWhitespace.length; i++) {
 			String word = nonWhitespace[i];
-			result.append("\"" + word.replaceAll("\"","\\\"") + "\"");
+			result.append("\"" + word.replaceAll("\"","\\\"") + "\" ");
 		}
 	
 		result.append("]");
