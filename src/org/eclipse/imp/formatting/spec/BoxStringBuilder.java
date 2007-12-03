@@ -30,7 +30,7 @@ public class BoxStringBuilder {
 		if (len != 0) {
 		  int end = start + len;
 		  String term = source.substring(start, end);
-		  return "\"" + term.replaceAll("\n","\\\\n").replaceAll("\t","\\\\t") + "\"";
+		  return "\"" + term.replaceAll("\n","\\\\n").replaceAll("\t","\\\\t").replaceAll("\"", "\\\\\"") + "\"";
 		}
 		else {
 			return "";
