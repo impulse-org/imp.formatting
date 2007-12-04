@@ -124,6 +124,7 @@ public class Editor extends MultiPageEditorPart implements
 	}
 
 	void createPlainEditor() {
+		
 		try {
 			editor = new TextEditor() {
 				@Override
@@ -157,7 +158,7 @@ public class Editor extends MultiPageEditorPart implements
 		});
 	}
 
-	private void createRuleEditor(Specification model) {
+	private void createRuleEditor() {
 		Composite parent = new Composite(getContainer(), SWT.NONE);
 		parent.setLayout(new FillLayout(SWT.HORIZONTAL));
 
@@ -165,7 +166,7 @@ public class Editor extends MultiPageEditorPart implements
 				| SWT.HIDE_SELECTION);
 		ruleTable.setLinesVisible(true);
 		ruleTable.setHeaderVisible(true);
-
+		
 		TableColumn status = new TableColumn(ruleTable, SWT.NONE);
 		status.setText("Status");
 		status.setResizable(true);
@@ -178,14 +179,7 @@ public class Editor extends MultiPageEditorPart implements
 		preview.setText("Preview");
 		preview.setResizable(true);
 
-		Iterator<Rule> iter = model.ruleIterator();
-
-		while (iter.hasNext()) {
-			final Rule rule = iter.next();
-			TableItem item = new TableItem(ruleTable, SWT.NONE);
-			initRuleTableItem(rule, item);
-		}
-
+	
 		status.pack();
 		box.pack();
 		preview.pack();
@@ -270,8 +264,6 @@ public class Editor extends MultiPageEditorPart implements
 				            if (text != null) {
 				              label.setText(text);
 				            }
-//				            label.addListener(SWT.MouseExit, labelListener);
-//				            label.addListener(SWT.MouseDown, labelListener);
 				            Point size = tip.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 				            Rectangle rect = item.getBounds(0);
 				            Point pt = ruleTable.toDisplay(rect.x, rect.y);
@@ -303,6 +295,22 @@ public class Editor extends MultiPageEditorPart implements
 		setPageText(RuleEditorIndex, "Rules");
 
 		createRuleActions();
+	}
+
+	private void updateRuleTable(Specification model) {
+		ruleTable.removeAll();
+		
+		Iterator<Rule> iter = model.ruleIterator();
+
+		while (iter.hasNext()) {
+			final Rule rule = iter.next();
+			TableItem item = new TableItem(ruleTable, SWT.NONE);
+			initRuleTableItem(rule, item);
+		}
+		
+		for (TableColumn c : ruleTable.getColumns()) {
+			c.pack();
+		}
 	}
 
 	private void initRuleTableItem(final Rule rule, TableItem item) {
@@ -387,11 +395,12 @@ public class Editor extends MultiPageEditorPart implements
 		createPlainEditor();
 
 		model = updateModelFromFile();
-		createRuleEditor(model);
+		createRuleEditor();
+		updateRuleTable(model);
+		
 		createExampleViewer();
-
 		updateExample();
-
+		
 		rulesModified = false;
 		exampleModified = false;
 	}
@@ -469,7 +478,7 @@ public class Editor extends MultiPageEditorPart implements
 	}
 
 	public void doSave(IProgressMonitor monitor) {
-		if (rulesModified || exampleModified) {
+		if ((rulesModified || exampleModified)) {
 			Unparser u = new Unparser();
 			String newText = u.unparse(model);
 
@@ -483,6 +492,7 @@ public class Editor extends MultiPageEditorPart implements
 		} else if (editor.isDirty()) {
 			editor.doSave(monitor);
 			updateModelFromFile();
+			updateRuleTable(model);
 			updateExample();
 		}
 	}
