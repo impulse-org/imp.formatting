@@ -250,7 +250,7 @@ public class Editor extends MultiPageEditorPart implements
 				        }
 				        case SWT.MouseHover: {
 				          TableItem item = ruleTable.getItem(new Point(event.x, event.y));
-				          if (!activeRule.equals(item.getData()) && item != null) {
+				          if (item != null) {
 				            if (tip != null && !tip.isDisposed())
 				              tip.dispose();
 				            tip = new Shell(shell, SWT.ON_TOP | SWT.TOOL);
