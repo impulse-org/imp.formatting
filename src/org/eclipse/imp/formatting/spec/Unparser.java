@@ -7,9 +7,15 @@ import java.util.Iterator;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
-import org.apache.xml.serialize.OutputFormat;
-import org.apache.xml.serialize.XMLSerializer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -38,16 +44,12 @@ public class Unparser {
 	private String printToString(Document dom){
 		try
 		{
-			OutputFormat format = new OutputFormat(dom);
-			format.setIndenting(true);
-
 			ByteArrayOutputStream output = new ByteArrayOutputStream();
 			
-			//to generate a file output use fileoutputstream instead of system.out
-			XMLSerializer serializer = new XMLSerializer(
-			output, format);
-
-			serializer.serialize(dom);
+			Transformer t = TransformerFactory.newInstance().newTransformer();
+            t.setOutputProperty(OutputKeys.INDENT, "yes");  
+            
+			t.transform(new DOMSource(dom), new StreamResult(output));
 			
 			String result = output.toString();
 			
@@ -56,7 +58,18 @@ public class Unparser {
 		} catch(IOException ie) {
 		    ie.printStackTrace();
 		    return "";
+		} catch (TransformerConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerFactoryConfigurationError e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		
+		return null;
 	}
 
 	private void addSpec(Specification spec, Element root) {
