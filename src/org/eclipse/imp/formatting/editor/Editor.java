@@ -12,6 +12,7 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.box.builders.BoxException;
 import org.eclipse.imp.box.builders.BoxFactory;
 import org.eclipse.imp.formatting.spec.BoxStringBuilder;
 import org.eclipse.imp.formatting.spec.ExtensionPointBinder;
@@ -249,7 +250,7 @@ public class Editor extends MultiPageEditorPart implements
 				        }
 				        case SWT.MouseHover: {
 				          TableItem item = ruleTable.getItem(new Point(event.x, event.y));
-				          if (item != null) {
+				          if (!activeRule.equals(item.getData()) && item != null) {
 				            if (tip != null && !tip.isDisposed())
 				              tip.dispose();
 				            tip = new Shell(shell, SWT.ON_TOP | SWT.TOOL);
@@ -352,9 +353,7 @@ public class Editor extends MultiPageEditorPart implements
 			} else {
 				return "";
 			}
-		} catch (IOException e) {
-			return "";
-		} catch (InterruptedException e) {
+		} catch (BoxException e) {
 			return "";
 		}
 	}

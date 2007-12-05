@@ -6,6 +6,7 @@ import lpg.runtime.IMessageHandler;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.imp.box.builders.BoxException;
 import org.eclipse.imp.box.builders.BoxFactory;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.formatting.spec.ExtensionPointBinder;
@@ -97,11 +98,7 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 			String box = transformer.transformToBox(content, ast);
 			try {
 				return BoxFactory.box2text(box);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				return content;
-			} catch (InterruptedException e) {
+			} catch (BoxException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				return content;
