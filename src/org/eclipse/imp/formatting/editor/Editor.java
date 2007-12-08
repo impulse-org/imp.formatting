@@ -163,8 +163,8 @@ public class Editor extends MultiPageEditorPart implements
 		Composite parent = new Composite(getContainer(), SWT.NONE);
 		parent.setLayout(new FillLayout(SWT.HORIZONTAL));
 
-		ruleTable = new Table(parent, SWT.MULTI | SWT.FULL_SELECTION
-				| SWT.HIDE_SELECTION);
+		ruleTable = new Table(parent,  SWT.FULL_SELECTION
+				);
 		ruleTable.setLinesVisible(true);
 		ruleTable.setHeaderVisible(true);
 		
@@ -180,11 +180,21 @@ public class Editor extends MultiPageEditorPart implements
 		preview.setText("Preview");
 		preview.setResizable(true);
 
-	
 		status.pack();
 		box.pack();
 		preview.pack();
 
+		createCellEditor();
+		createCellPainter();
+		createCellTooltip();
+
+		addPage(RuleEditorIndex, parent);
+		setPageText(RuleEditorIndex, "Rules");
+
+		createRuleActions();
+	}
+
+	private void createCellEditor() {
 		tableEditor = new TableEditor(ruleTable);
 		tableEditor.horizontalAlignment = SWT.LEFT;
 		tableEditor.verticalAlignment = SWT.TOP;
@@ -192,7 +202,6 @@ public class Editor extends MultiPageEditorPart implements
 		tableEditor.grabVertical = true;
 		tableEditor.minimumWidth = 50;
 
-		ruleTable.setToolTipText("");
 		ruleTable.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				Control oldEditor = tableEditor.getEditor();
@@ -228,60 +237,6 @@ public class Editor extends MultiPageEditorPart implements
 					}
 				});
 				
-				
-				
-				Listener tooltipListener = new Listener() {
-				      Shell tip = null;
-				      Label label = null;
-				      Display display = ruleTable.getDisplay();
-				      Shell shell = ruleTable.getShell();
-
-				      public void handleEvent(Event event) {
-				        switch (event.type) {
-				        case SWT.Dispose:
-				        case SWT.KeyDown:
-				        case SWT.MouseMove: {
-				          if (tip == null)
-				            break;
-				          tip.dispose();
-				          tip = null;
-				          label = null;
-				          break;
-				        }
-				        case SWT.MouseHover: {
-				          TableItem item = ruleTable.getItem(new Point(event.x, event.y));
-				          if (item != null) {
-				            if (tip != null && !tip.isDisposed()) {
-				              tip.dispose();
-				            }
-				            tip = new Shell(shell, SWT.ON_TOP | SWT.TOOL);
-				            tip.setLayout(new FillLayout());
-				            label = new Label(tip, SWT.NONE);
-				            label.setForeground(display
-				                .getSystemColor(SWT.COLOR_INFO_FOREGROUND));
-				            label.setBackground(ruleTable.getDisplay()
-				                .getSystemColor(SWT.COLOR_INFO_BACKGROUND));
-				            label.setData("_TABLEITEM", item);
-				            String text = (String) item.getData("tooltip");
-				            if (text != null) {
-				              label.setText(text);
-				            }
-				            Point size = tip.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-				            Rectangle rect = item.getBounds(0);
-				            Point pt = ruleTable.toDisplay(rect.x, rect.y);
-				            tip.setBounds(pt.x, pt.y, size.x, size.y);
-				            tip.setVisible(true);
-				          }
-				        }
-				        }
-				      }
-				    };
-				    
-				    ruleTable.addListener(SWT.KeyDown, tooltipListener);
-				    ruleTable.addListener(SWT.Dispose, tooltipListener);
-				    ruleTable.addListener(SWT.MouseHover, tooltipListener);
-				    ruleTable.addListener(SWT.MouseMove, tooltipListener);
-				    
 				newEditor.addFocusListener(new FocusAdapter() {
 					public void focusLost(FocusEvent e) {
 						newEditor.dispose();
@@ -291,12 +246,95 @@ public class Editor extends MultiPageEditorPart implements
 				newEditor.setFocus();
 				tableEditor.setEditor(newEditor, item, EDIT_COLUMN);
 			}
+
+			
 		});
+	}
 
-		addPage(RuleEditorIndex, parent);
-		setPageText(RuleEditorIndex, "Rules");
+	private void createCellTooltip() {
+		ruleTable.setToolTipText("");
 
-		createRuleActions();
+		Listener tooltipListener = new Listener() {
+			Shell tip = null;
+
+			Label label = null;
+
+			Display display = ruleTable.getDisplay();
+
+			Shell shell = ruleTable.getShell();
+
+			public void handleEvent(Event event) {
+				switch (event.type) {
+				case SWT.Dispose:
+				case SWT.KeyDown:
+				case SWT.MouseMove: {
+					if (tip == null)
+						break;
+					tip.dispose();
+					tip = null;
+					label = null;
+					break;
+				}
+				case SWT.MouseHover: {
+					TableItem item = ruleTable.getItem(new Point(
+							event.x, event.y));
+					if (item != null) {
+						if (tip != null && !tip.isDisposed()) {
+							tip.dispose();
+						}
+						tip = new Shell(shell, SWT.ON_TOP | SWT.TOOL);
+						tip.setLayout(new FillLayout());
+						label = new Label(tip, SWT.NONE);
+						label
+								.setForeground(display
+										.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+						label.setBackground(ruleTable.getDisplay()
+								.getSystemColor(
+										SWT.COLOR_INFO_BACKGROUND));
+						label.setData("_TABLEITEM", item);
+						String text = (String) item.getData("tooltip");
+						if (text != null) {
+							label.setText(text);
+						}
+						Point size = tip.computeSize(SWT.DEFAULT,
+								SWT.DEFAULT);
+						Rectangle rect = item.getBounds(0);
+						Point pt = ruleTable.toDisplay(rect.x, rect.y);
+						tip.setBounds(pt.x, pt.y, size.x, size.y);
+						tip.setVisible(true);
+					}
+				}
+				}
+			}
+		};
+
+		ruleTable.addListener(SWT.KeyDown, tooltipListener);
+		ruleTable.addListener(SWT.Dispose, tooltipListener);
+		ruleTable.addListener(SWT.MouseHover, tooltipListener);
+		ruleTable.addListener(SWT.MouseMove, tooltipListener);
+	}
+	private void createCellPainter() {
+		ruleTable.addListener(SWT.MeasureItem, new Listener() {
+			public void handleEvent(Event event) {
+				TableItem item = (TableItem) event.item;
+				String text = item.getText(event.index);
+				Point size = event.gc.textExtent(text, SWT.DRAW_DELIMITER);
+				event.width = size.x + 2 * 2;
+				event.height = size.y + 2;
+			}
+		});
+		ruleTable.addListener(SWT.EraseItem, new Listener() {
+			 	   public void handleEvent(Event event) {
+			 	      event.detail &= ~SWT.FOREGROUND;
+			 	   }
+			 	});
+		ruleTable.addListener(SWT.PaintItem, new Listener() {
+			public void handleEvent(Event event) {
+				TableItem item = (TableItem) event.item;
+				String text = item.getText(event.index);
+				event.gc.drawText(text, event.x + 2, event.y, true);
+			}
+		});
 	}
 
 	private void updateRuleTable(Specification model) {
@@ -582,9 +620,9 @@ public class Editor extends MultiPageEditorPart implements
 		if (activeRule != null) {
 			disposeTableEditor();
 			int i = model.getRules().indexOf(activeRule);
-			model.removeRule(i);
-			ruleTable.remove(i);
 			ruleTable.deselectAll();
+			ruleTable.remove(i);
+			model.removeRule(i);
 			setRulesModified(true);
 		}
 	}
