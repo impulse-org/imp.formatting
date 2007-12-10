@@ -141,7 +141,7 @@ public class BoxStringBuilder {
 		buffer.append("]");
 		return buffer.toString();
 	}
-	
+
 	public static String exampleToBox(String source) {
 		String nonWhitespace[] = source.split("[\\s]");
 		StringBuffer result = new StringBuffer();
@@ -150,7 +150,9 @@ public class BoxStringBuilder {
 		
 		for (int i = 0; i < nonWhitespace.length; i++) {
 			String word = nonWhitespace[i];
-			result.append("\"" + word.replaceAll("\"","\\\"") + "\" ");
+			if (word.length() > 0) {
+			  result.append("\"" + word.replaceAll("\"","\\\"") + "\" ");
+			}
 		}
 	
 		result.append("]");

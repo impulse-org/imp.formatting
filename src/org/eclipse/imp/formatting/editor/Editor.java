@@ -263,6 +263,10 @@ public class Editor extends MultiPageEditorPart implements
 
 			Shell shell = ruleTable.getShell();
 
+			private static final int X_OFFSET = 10;
+
+			private static final int Y_OFFSET = -10;
+
 			public void handleEvent(Event event) {
 				switch (event.type) {
 				case SWT.Dispose:
@@ -300,7 +304,7 @@ public class Editor extends MultiPageEditorPart implements
 								SWT.DEFAULT);
 						Rectangle rect = item.getBounds(0);
 						Point pt = ruleTable.toDisplay(rect.x, rect.y);
-						tip.setBounds(pt.x, pt.y, size.x, size.y);
+						tip.setBounds(pt.x + size.y, pt.y - size.y, size.x, size.y);
 						tip.setVisible(true);
 					}
 				}
@@ -425,6 +429,11 @@ public class Editor extends MultiPageEditorPart implements
 
 	protected void updateExample() {
 		if (model != null) {
+			String current = example.getText();
+			
+			if (current == null || current.length() == 0) {
+			  example.setText(model.getExample());
+			}
 			reformatExample();
 		}
 	}
