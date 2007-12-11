@@ -220,6 +220,7 @@ public class Editor extends MultiPageEditorPart implements
 
 				final Text newEditor = new Text(ruleTable, SWT.MULTI | SWT.WRAP
 						| SWT.BORDER);
+				newEditor.setFont(item.getFont());
 				newEditor.setText(item.getText(EDIT_COLUMN));
 
 				if (activeItem instanceof Rule) {
