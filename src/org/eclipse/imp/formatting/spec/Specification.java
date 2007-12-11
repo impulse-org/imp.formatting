@@ -17,17 +17,23 @@ public class Specification {
 	private List<Item> items;
 	private String example;
 	private Object exampleAst;
+	private Parser parser;
 	
-	public Specification(String language) {
-		this();
+	public Specification(String language, Parser parser) {
+		this(parser);
 		this.language = language;
 	}
 	
-	public Specification() {
+	public Specification(Parser parser) {
 		this.items = new LinkedList<Item>();
 		this.example = "";
+		this.parser = parser;
 	}
 
+	public Parser getParser() {
+		return parser;
+	}
+	
 	public void addRule(Item rule) {
 		items.add(rule);
 	}

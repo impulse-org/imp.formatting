@@ -73,7 +73,7 @@ public class Parser extends DefaultHandler {
 
 	public Parser(IPath path, ISourceProject project, IMessageHandler handler) throws ModelException {
 		this.path = path;
-		this.spec = new Specification();
+		this.spec = new Specification(this);
 		this.project = project;
 		this.handler = handler;
 	}
