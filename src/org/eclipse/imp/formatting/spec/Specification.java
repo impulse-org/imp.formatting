@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class Specification {
 	private String language;
-	private List<Rule> rules;
+	private List<Item> items;
 	private String example;
 	private Object exampleAst;
 	
@@ -24,28 +24,28 @@ public class Specification {
 	}
 	
 	public Specification() {
-		this.rules = new LinkedList<Rule>();
+		this.items = new LinkedList<Item>();
 		this.example = "";
 	}
 
-	public void addRule(Rule rule) {
-		rules.add(rule);
+	public void addRule(Item rule) {
+		items.add(rule);
 	}
 	
-	public void addRule(int index, Rule rule) {
-		rules.add(index, rule);
+	public void addRule(int index, Item rule) {
+		items.add(index, rule);
 	}
 	
 	public void removeRule(int index) {
-		rules.remove(index);
+		items.remove(index);
 	}
 	
 	public List getRules() {
-		return rules;
+		return items;
 	}
 	
-	public Iterator<Rule> ruleIterator() {
-		return rules.listIterator();
+	public Iterator<Item> ruleIterator() {
+		return items.listIterator();
 	}
 	
 	public String getExample() {
@@ -72,7 +72,32 @@ public class Specification {
 		this.exampleAst = object;
 	}
 
-	public void removeRule(Rule tmpRule) {
-		rules.remove(tmpRule);
+	public void removeRule(Item tmpRule) {
+		items.remove(tmpRule);
+	}
+
+
+	public void addSeparator(int i, Separator sep) {
+		items.add(i, sep);
+	}
+	
+	public void addSeparator(Separator sep) {
+		items.add(sep);
+	}
+	
+	public void removeSeparator(Separator sep) {
+		items.remove(sep);
+	}
+	
+	public void move(int index, Item item) {
+		items.remove(item);
+		items.add(index, item);
+	}
+	
+	public void move(int index, Item[] toBeMoved) {
+		for (Item item : toBeMoved) {
+			items.remove(item);
+			items.add(index++, item);
+		}
 	}
 }

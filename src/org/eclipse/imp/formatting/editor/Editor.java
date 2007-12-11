@@ -2,6 +2,7 @@ package org.eclipse.imp.formatting.editor;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 
 import lpg.runtime.IMessageHandler;
 
@@ -16,9 +17,11 @@ import org.eclipse.imp.box.builders.BoxException;
 import org.eclipse.imp.box.builders.BoxFactory;
 import org.eclipse.imp.formatting.spec.BoxStringBuilder;
 import org.eclipse.imp.formatting.spec.ExtensionPointBinder;
+import org.eclipse.imp.formatting.spec.Item;
 import org.eclipse.imp.formatting.spec.ParseException;
 import org.eclipse.imp.formatting.spec.Parser;
 import org.eclipse.imp.formatting.spec.Rule;
+import org.eclipse.imp.formatting.spec.Separator;
 import org.eclipse.imp.formatting.spec.Specification;
 import org.eclipse.imp.formatting.spec.Transformer;
 import org.eclipse.imp.formatting.spec.Unparser;
@@ -84,6 +87,7 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 
 public class Editor extends MultiPageEditorPart implements
 		IResourceChangeListener {
+
 	private static final int PlainEditorIndex = 0; // must be 0
 
 	private static final int RuleEditorIndex = 1;
@@ -102,7 +106,7 @@ public class Editor extends MultiPageEditorPart implements
 
 	private Parser parser;
 
-	private Rule activeRule;
+	private Item activeItem;
 
 	private Table ruleTable;
 
@@ -125,7 +129,7 @@ public class Editor extends MultiPageEditorPart implements
 	}
 
 	void createPlainEditor() {
-		
+
 		try {
 			editor = new TextEditor() {
 				@Override
@@ -163,11 +167,10 @@ public class Editor extends MultiPageEditorPart implements
 		Composite parent = new Composite(getContainer(), SWT.NONE);
 		parent.setLayout(new FillLayout(SWT.HORIZONTAL));
 
-		ruleTable = new Table(parent,  SWT.FULL_SELECTION
-				);
+		ruleTable = new Table(parent, SWT.FULL_SELECTION);
 		ruleTable.setLinesVisible(true);
 		ruleTable.setHeaderVisible(true);
-		
+
 		TableColumn status = new TableColumn(ruleTable, SWT.NONE);
 		status.setText("Status");
 		status.setResizable(true);
@@ -213,30 +216,18 @@ public class Editor extends MultiPageEditorPart implements
 				if (item == null)
 					return;
 
-				activeRule = (Rule) item.getData();
-				
+				activeItem = (Item) item.getData();
+
 				final Text newEditor = new Text(ruleTable, SWT.MULTI | SWT.WRAP
 						| SWT.BORDER);
 				newEditor.setText(item.getText(EDIT_COLUMN));
-				newEditor.addModifyListener(new ModifyListener() {
-					public void modifyText(ModifyEvent e) {
-						Text text = (Text) tableEditor.getEditor();
-						String b = text.getText();
-						TableItem i = tableEditor.getItem();
-						i.setText(EDIT_COLUMN, b);
-						Rule rule = (Rule) tableEditor.getItem().getData();
 
-						rule.setBoxString(b);
-						updateRuleTableItem(i, b);
+				if (activeItem instanceof Rule) {
+					newEditor.addModifyListener(new RuleModifier());
+				} else if (activeItem instanceof Separator) {
+					newEditor.addModifyListener(new SeparatorModifier());
+				}
 
-						if (!rulesModified) {
-							rulesModified = true;
-							firePropertyChange(PROP_DIRTY);
-						}
-
-					}
-				});
-				
 				newEditor.addFocusListener(new FocusAdapter() {
 					public void focusLost(FocusEvent e) {
 						newEditor.dispose();
@@ -247,7 +238,6 @@ public class Editor extends MultiPageEditorPart implements
 				tableEditor.setEditor(newEditor, item, EDIT_COLUMN);
 			}
 
-			
 		});
 	}
 
@@ -263,10 +253,6 @@ public class Editor extends MultiPageEditorPart implements
 
 			Shell shell = ruleTable.getShell();
 
-			private static final int X_OFFSET = 10;
-
-			private static final int Y_OFFSET = -10;
-
 			public void handleEvent(Event event) {
 				switch (event.type) {
 				case SWT.Dispose:
@@ -280,8 +266,8 @@ public class Editor extends MultiPageEditorPart implements
 					break;
 				}
 				case SWT.MouseHover: {
-					TableItem item = ruleTable.getItem(new Point(
-							event.x, event.y));
+					TableItem item = ruleTable.getItem(new Point(event.x,
+							event.y));
 					if (item != null) {
 						if (tip != null && !tip.isDisposed()) {
 							tip.dispose();
@@ -289,23 +275,22 @@ public class Editor extends MultiPageEditorPart implements
 						tip = new Shell(shell, SWT.ON_TOP | SWT.TOOL);
 						tip.setLayout(new FillLayout());
 						label = new Label(tip, SWT.NONE);
-						label
-								.setForeground(display
-										.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+						label.setForeground(display
+								.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
 						label.setBackground(ruleTable.getDisplay()
-								.getSystemColor(
-										SWT.COLOR_INFO_BACKGROUND));
-						label.setData("_TABLEITEM", item);
+								.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 						String text = (String) item.getData("tooltip");
 						if (text != null) {
 							label.setText(text);
+
+							Point size = tip.computeSize(SWT.DEFAULT,
+									SWT.DEFAULT);
+							Rectangle rect = item.getBounds(0);
+							Point pt = ruleTable.toDisplay(rect.x, rect.y);
+							tip.setBounds(pt.x + size.y, pt.y - size.y, size.x,
+									size.y);
+							tip.setVisible(true);
 						}
-						Point size = tip.computeSize(SWT.DEFAULT,
-								SWT.DEFAULT);
-						Rectangle rect = item.getBounds(0);
-						Point pt = ruleTable.toDisplay(rect.x, rect.y);
-						tip.setBounds(pt.x + size.y, pt.y - size.y, size.x, size.y);
-						tip.setVisible(true);
 					}
 				}
 				}
@@ -317,25 +302,28 @@ public class Editor extends MultiPageEditorPart implements
 		ruleTable.addListener(SWT.MouseHover, tooltipListener);
 		ruleTable.addListener(SWT.MouseMove, tooltipListener);
 	}
+
 	private void createCellPainter() {
 		ruleTable.addListener(SWT.MeasureItem, new Listener() {
 			public void handleEvent(Event event) {
 				TableItem item = (TableItem) event.item;
 				String text = item.getText(event.index);
+				event.gc.setFont(item.getFont());
 				Point size = event.gc.textExtent(text, SWT.DRAW_DELIMITER);
 				event.width = size.x + 2 * 2;
 				event.height = size.y + 2;
 			}
 		});
 		ruleTable.addListener(SWT.EraseItem, new Listener() {
-			 	   public void handleEvent(Event event) {
-			 	      event.detail &= ~SWT.FOREGROUND;
-			 	   }
-			 	});
+			public void handleEvent(Event event) {
+				event.detail &= ~SWT.FOREGROUND;
+			}
+		});
 		ruleTable.addListener(SWT.PaintItem, new Listener() {
 			public void handleEvent(Event event) {
 				TableItem item = (TableItem) event.item;
 				String text = item.getText(event.index);
+				event.gc.setFont(item.getFont());
 				event.gc.drawText(text, event.x + 2, event.y, true);
 			}
 		});
@@ -343,15 +331,20 @@ public class Editor extends MultiPageEditorPart implements
 
 	private void updateRuleTable(Specification model) {
 		ruleTable.removeAll();
-		
-		Iterator<Rule> iter = model.ruleIterator();
+
+		Iterator<Item> iter = model.ruleIterator();
 
 		while (iter.hasNext()) {
-			final Rule rule = iter.next();
+			final Item i = iter.next();
 			TableItem item = new TableItem(ruleTable, SWT.NONE);
-			initRuleTableItem(rule, item);
+
+			if (i instanceof Rule) {
+				initRuleTableItem((Rule) i, item);
+			} else if (i instanceof Separator) {
+				initSeparatorTableItem((Separator) i, item);
+			}
 		}
-		
+
 		for (TableColumn c : ruleTable.getColumns()) {
 			c.pack();
 		}
@@ -380,9 +373,8 @@ public class Editor extends MultiPageEditorPart implements
 					item.setText(STATUS_COLUMN, "ok");
 					item.setData("tooltip", ast.getClass().getName());
 				}
-			}
-			else {
-			   item.setText(STATUS_COLUMN, "error in box");
+			} else {
+				item.setText(STATUS_COLUMN, "error in box");
 			}
 		} else {
 			item.setText(STATUS_COLUMN, "no box");
@@ -430,9 +422,9 @@ public class Editor extends MultiPageEditorPart implements
 	protected void updateExample() {
 		if (model != null) {
 			String current = example.getText();
-			
+
 			if (current == null || current.length() == 0) {
-			  example.setText(model.getExample());
+				example.setText(model.getExample());
 			}
 			reformatExample();
 		}
@@ -444,10 +436,10 @@ public class Editor extends MultiPageEditorPart implements
 		model = updateModelFromFile();
 		createRuleEditor();
 		updateRuleTable(model);
-		
+
 		createExampleViewer();
 		updateExample();
-		
+
 		rulesModified = false;
 		exampleModified = false;
 	}
@@ -465,13 +457,17 @@ public class Editor extends MultiPageEditorPart implements
 			ISourceProject sp = ModelFactory.open(project);
 
 			parser = new Parser(fullFilePath, sp, new IMessageHandler() {
-				public void handleMessage(int errorCode, int[] msgLocation, int[] errorLocation, String filename, String[] errorInfo) {
+				public void handleMessage(int errorCode, int[] msgLocation,
+						int[] errorLocation, String filename, String[] errorInfo) {
 					System.err.println("parse error:");
-					System.err.println("\tline: " + errorLocation[IMessageHandler.START_LINE_INDEX]);
-					System.err.println("\tcolumn: " + errorLocation[IMessageHandler.START_COLUMN_INDEX]);
+					System.err.println("\tline: "
+							+ errorLocation[IMessageHandler.START_LINE_INDEX]);
+					System.err
+							.println("\tcolumn: "
+									+ errorLocation[IMessageHandler.START_COLUMN_INDEX]);
 				}
 			});
-			
+
 			String editorText = editor.getDocumentProvider().getDocument(
 					editor.getEditorInput()).get();
 			model = parser.parse(editorText);
@@ -487,21 +483,22 @@ public class Editor extends MultiPageEditorPart implements
 
 	private void reformatExample() {
 		Object ast = parser.parseObject(model.getExample());
-	
+
 		if (ast != null) {
 			model.setExampleAst(ast);
-			
+
 			try {
 				Language objectLanguage = LanguageRegistry.findLanguage(model
 						.getLanguage());
-				ExtensionPointBinder b = new ExtensionPointBinder(objectLanguage);
+				ExtensionPointBinder b = new ExtensionPointBinder(
+						objectLanguage);
 				Transformer t = new Transformer(model, b.getASTAdapter());
 				String box = t.transformToBox(model.getExample(), model
 						.getExampleAst());
 				String newExample = null;
 
 				newExample = BoxFactory.box2text(box);
-				
+
 				example.setText(newExample);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -514,7 +511,6 @@ public class Editor extends MultiPageEditorPart implements
 				e.printStackTrace();
 			}
 
-		
 			exampleModified = false;
 		}
 	}
@@ -595,14 +591,14 @@ public class Editor extends MultiPageEditorPart implements
 	public void newRule() {
 		Rule r = new Rule();
 
-		if (activeRule != null) {
+		if (activeItem != null) {
 			disposeTableEditor();
-			int i = model.getRules().indexOf(activeRule);
+			int i = model.getRules().indexOf(activeItem);
 			model.addRule(i, r);
 			TableItem item = new TableItem(ruleTable, SWT.NONE, i);
 			initRuleTableItem(r, item);
 			ruleTable.select(i);
-			activeRule = r;
+			activeItem = r;
 		} else {
 			model.addRule(r);
 			TableItem item = new TableItem(ruleTable, SWT.NONE);
@@ -626,9 +622,9 @@ public class Editor extends MultiPageEditorPart implements
 	}
 
 	public void deleteRule() {
-		if (activeRule != null) {
+		if (activeItem != null) {
 			disposeTableEditor();
-			int i = model.getRules().indexOf(activeRule);
+			int i = model.getRules().indexOf(activeItem);
 			ruleTable.deselectAll();
 			ruleTable.remove(i);
 			model.removeRule(i);
@@ -637,15 +633,16 @@ public class Editor extends MultiPageEditorPart implements
 	}
 
 	public void formatRule() {
-		if (activeRule != null) {
+		if (activeItem != null && activeItem instanceof Rule) {
+			Rule rule = (Rule) activeItem;
 			disposeTableEditor();
-			String box = activeRule.getBoxString();
+			String box = rule.getBoxString();
 			String formatted;
 			try {
 				formatted = BoxFactory.formatBox(box);
 				if (formatted != null) {
-					activeRule.setBoxString(formatted);
-					int i = model.getRules().indexOf(activeRule);
+					rule.setBoxString(formatted);
+					int i = model.getRules().indexOf(rule);
 					ruleTable.getItem(i).setText(EDIT_COLUMN, formatted);
 					setRulesModified(true);
 				}
@@ -662,36 +659,141 @@ public class Editor extends MultiPageEditorPart implements
 
 	public void addRuleFromExample() {
 		disposeTableEditor();
-		
+
 		IInputValidator v = new IInputValidator() {
 			public String isValid(String newText) {
 				if (parser.parseObject(newText) != null) {
 					return null;
-				}
-				else {
+				} else {
 					return "Not a valid string";
 				}
 			}
 		};
-		
+
 		InputDialog dialog = new InputDialog(getContainer().getShell(),
-				"provide your example", "",null, v);
-		
+				"provide your example", "", null, v);
+
 		dialog.setBlockOnOpen(true);
 		dialog.open();
-		
+
 		if (dialog.getReturnCode() == Window.OK) {
 			String result = dialog.getValue();
 			if (result != null) {
 				newRule();
-				Rule rule = activeRule;
+				Rule rule = (Rule) activeItem;
 				String box = BoxStringBuilder.exampleToBox(result);
 				rule.setBoxString(box);
-				int i = model.getRules().indexOf(activeRule);
+				int i = model.getRules().indexOf(activeItem);
 				TableItem item = ruleTable.getItem(i);
 				updateRuleTableItem(item, box);
 				setRulesModified(true);
 			}
 		}
 	}
+
+	public void addSeparator() {
+		Separator s = new Separator();
+
+		if (activeItem != null) {
+			disposeTableEditor();
+			int i = model.getRules().indexOf(activeItem);
+			model.addSeparator(i, s);
+			TableItem item = new TableItem(ruleTable, SWT.NONE, i);
+			initSeparatorTableItem(s, item);
+			ruleTable.select(i);
+			activeItem = s;
+		} else {
+			model.addRule(s);
+			TableItem item = new TableItem(ruleTable, SWT.NONE);
+			initSeparatorTableItem(s, item);
+			ruleTable.select(ruleTable.getChildren().length);
+		}
+
+		setRulesModified(true);
+	}
+
+	private void initSeparatorTableItem(Separator s, TableItem item) {
+		item.setData(s);
+		updateSeparatorTableItem(item, s.getLabel());
+	}
+
+	private void updateSeparatorTableItem(TableItem item, String label) {
+		item.setText(EDIT_COLUMN, label);
+		item.setText(PREVIEW_COLUMN, "");
+		item.setText(STATUS_COLUMN, "---");
+		Font font = new Font(ruleTable.getDisplay(), "Monospace", 14, SWT.BOLD);
+		item.setFont(font);
+	}
+
+	private final class RuleModifier implements ModifyListener {
+		public void modifyText(ModifyEvent e) {
+			Text text = (Text) tableEditor.getEditor();
+			String b = text.getText();
+			TableItem i = tableEditor.getItem();
+			i.setText(EDIT_COLUMN, b);
+			Rule rule = (Rule) tableEditor.getItem().getData();
+
+			rule.setBoxString(b);
+			updateRuleTableItem(i, b);
+
+			if (!rulesModified) {
+				rulesModified = true;
+				firePropertyChange(PROP_DIRTY);
+			}
+
+		}
+	}
+
+	private final class SeparatorModifier implements ModifyListener {
+		public void modifyText(ModifyEvent e) {
+			Text text = (Text) tableEditor.getEditor();
+			String l = text.getText();
+			TableItem i = tableEditor.getItem();
+			i.setText(EDIT_COLUMN, l);
+			Separator sep = (Separator) tableEditor.getItem().getData();
+
+			sep.setLabel(l);
+			updateSeparatorTableItem(i, l);
+
+			if (!rulesModified) {
+				rulesModified = true;
+				firePropertyChange(PROP_DIRTY);
+			}
+
+		}
+	}
+
+	public void moveUp() {
+		move(-1);
+	}
+	
+	public void moveDown() {
+		move(1);
+	}
+	
+	private void move(int diff) {
+		if (activeItem != null && activeItem instanceof Rule) {
+			Rule r = (Rule) activeItem;
+			List rules = model.getRules();
+			int cur = rules.indexOf(activeItem);
+			
+			if (cur + diff >= 0) {
+				disposeTableEditor();
+				
+				ruleTable.remove(cur);
+				model.removeRule(activeItem);
+				model.addRule(cur + diff, r);
+				
+				TableItem item = new TableItem(ruleTable, SWT.NONE, cur + diff);
+				initRuleTableItem(r, item);
+				ruleTable.select(cur + diff);
+
+				if (!rulesModified) {
+					rulesModified = true;
+					firePropertyChange(PROP_DIRTY);
+				}
+			}
+		}
+	}
+
 }

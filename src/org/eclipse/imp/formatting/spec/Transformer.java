@@ -51,10 +51,13 @@ public class Transformer {
 	 */
 	private void initializeRuleMap(Specification spec) {
 		ruleMap.clear();
-		Iterator<Rule> iter = spec.ruleIterator();
+		Iterator<Item> iter = spec.ruleIterator();
 		while (iter.hasNext()) {
-			Rule rule = iter.next();
-			initRule(rule);
+			Item item = iter.next();
+			
+			if (item instanceof Rule) {
+			  initRule((Rule) item);
+			}
 		}
 	}
 

@@ -87,14 +87,25 @@ public class Unparser {
 		root.appendChild(example);
 	}
 
-	private void addRules(Iterator<Rule> list, Element rules) {
+	private void addRules(Iterator<Item> list, Element rules) {
 		while (list.hasNext()) {
-			Rule rule = list.next();
-			Element elem = dom.createElement("rule");
-			Element box = dom.createElement("box");
-			elem.appendChild(box);
-			box.setTextContent(rule.getBoxString());
-			rules.appendChild(elem);
+			Item item = list.next();
+
+			if (item instanceof Rule) {
+				Rule rule = (Rule) item;
+				Element elem = dom.createElement("rule");
+				Element box = dom.createElement("box");
+				elem.appendChild(box);
+				box.setTextContent(rule.getBoxString());
+				rules.appendChild(elem);
+			}
+			else if (item instanceof Separator) {
+				Separator sep = (Separator) item;
+				Element elem = dom.createElement("separator");
+				String label = sep.getLabel();
+				elem.setTextContent(label.length() > 0 ? label : "anonymous");
+				rules.appendChild(elem);
+			}
 		}
 	}
 

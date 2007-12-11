@@ -69,6 +69,8 @@ public class Parser extends DefaultHandler {
 
 	private IMessageHandler handler;
 
+	private Separator tmpSeparator;
+
 	public Parser(IPath path, ISourceProject project, IMessageHandler handler) throws ModelException {
 		this.path = path;
 		this.spec = new Specification();
@@ -132,6 +134,9 @@ public class Parser extends DefaultHandler {
 			tmpContents = "";
 		} else if (qName.equals("language")) {
 			tmpContents = "";
+		} else if (qName.equals("separator")) {
+			tmpSeparator = new Separator();
+			tmpContents = "";
 		}
 	}
 
@@ -163,7 +168,11 @@ public class Parser extends DefaultHandler {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		} else if (qName.equals("separator")) {
+			tmpSeparator.setLabel(tmpContents);
+			spec.addSeparator(tmpSeparator);
 		}
+		
 	}
 
 	public void parseBoxAndObject(String boxString, Rule rule)

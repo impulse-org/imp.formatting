@@ -89,6 +89,7 @@ public class Contributor extends EditorActionBarContributor {
 
 	public void contributeToToolBar(IToolBarManager manager) {
 		manager.add(new Separator());
+		
 		manager.add(new Action("Add rule") {
 			public void run() {
 				IEditorPart editor = getPage().getActiveEditor();
@@ -113,6 +114,33 @@ public class Contributor extends EditorActionBarContributor {
 				if (editor instanceof Editor) {
 					Editor e = (Editor) editor;
 					e.deleteRule();
+				}
+			}
+		});
+		manager.add(new Action("Add separator") {
+			public void run() {
+				IEditorPart editor = getPage().getActiveEditor();
+				if (editor instanceof Editor) {
+					Editor e = (Editor) editor;
+					e.addSeparator();
+				}
+			}
+		});
+		manager.add(new Action("Up") {
+			public void run() {
+				IEditorPart editor = getPage().getActiveEditor();
+				if (editor instanceof Editor) {
+					Editor e = (Editor) editor;
+					e.moveUp();
+				}
+			}
+		});
+		manager.add(new Action("Down") {
+			public void run() {
+				IEditorPart editor = getPage().getActiveEditor();
+				if (editor instanceof Editor) {
+					Editor e = (Editor) editor;
+					e.moveDown();
 				}
 			}
 		});
