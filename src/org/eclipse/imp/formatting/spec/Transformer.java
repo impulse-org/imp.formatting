@@ -66,7 +66,6 @@ public class Transformer {
 
 		if (pattern != null) {
 			String outermost = adapter.getTypeOf(pattern);
-			System.err.println("registered rule for: " + outermost);
 			List<Rule> list = ruleMap.get(outermost);
 
 			if (list == null) {
