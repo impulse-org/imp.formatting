@@ -5,8 +5,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.xml.transform.Transformer;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.box.builders.BoxException;
 import org.eclipse.imp.box.builders.BoxFactory;
@@ -24,6 +22,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -66,7 +65,7 @@ public class RuleTable implements IEditorPart {
 	private List<IPropertyListener> listeners;
 	
 	private Specification model;
-	private boolean dirty;
+	private boolean dirty = false;
 	private IEditorSite site;
 	private IEditorInput input;
 	
@@ -122,6 +121,7 @@ public class RuleTable implements IEditorPart {
 		return null;
 	}
 
+	
 	public void removePropertyListener(IPropertyListener listener) {
 		listeners.remove(listener);
 	}
@@ -397,11 +397,9 @@ public class RuleTable implements IEditorPart {
 		for (TableColumn c : ruleTable.getColumns()) {
 			c.pack();
 		}
-		
-		setDirty(false);
 	}
 
-	private void setDirty(boolean b) {
+	public void setDirty(boolean b) {
 		if (dirty != b) {
 		  dirty = b;
 		  firePropertyChange(PROP_DIRTY);
@@ -569,6 +567,4 @@ public class RuleTable implements IEditorPart {
 	public boolean isDirty() {
 		return dirty;
 	}
-
-	
 }

@@ -13,6 +13,7 @@ import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Image;
@@ -44,7 +45,7 @@ public class SpaceOptionTable implements IEditorPart {
 	
 	private Specification model;
 	
-	private boolean dirty;
+	private boolean dirty = false;
 	private IEditorSite site;
 	private IEditorInput input;
 	private TableViewer tableViewer;
@@ -266,11 +267,9 @@ public class SpaceOptionTable implements IEditorPart {
 		for (TableColumn c : optionTable.getColumns()) {
 			c.pack();
 		}
-		
-		setDirty(false);
 	}
 
-	private void setDirty(boolean b) {
+	public void setDirty(boolean b) {
 		if (dirty != b) {
 		  dirty = b;
 		  firePropertyChange(PROP_DIRTY);

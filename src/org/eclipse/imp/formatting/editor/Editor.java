@@ -26,6 +26,8 @@ import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Font;
@@ -283,27 +285,22 @@ public class Editor extends MultiPageEditorPart implements
 	}
 
 	public void doSave(IProgressMonitor monitor) {
-		if (isDirty()) {
-			Unparser u = new Unparser();
-			String newText = u.unparse(model);
+		Unparser u = new Unparser();
+		String newText = u.unparse(model);
 
-			getDocument()
-					.set(newText);
-			editor.doSave(monitor);
-			updateExample();
-			
-			ruleTable.refresh();
-			spaceTable.refresh();
-			
-			exampleModified = false;
-			firePropertyChange(PROP_DIRTY);
-		} else if (editor.isDirty()) {
-			editor.doSave(monitor);
-			updateModelFromFile(getDocument());
-			ruleTable.setModel(model);
-			spaceTable.setModel(model);
-			updateExample();
-		}
+		getDocument().set(newText);
+		editor.doSave(monitor);
+		updateExample();
+
+		ruleTable.refresh();
+		ruleTable.setDirty(false);
+		
+		spaceTable.refresh();
+		spaceTable.setDirty(false);
+
+		exampleModified = false;
+
+		firePropertyChange(PROP_DIRTY);
 	}
 
 	private IDocument getDocument() {
@@ -354,6 +351,22 @@ public class Editor extends MultiPageEditorPart implements
 		}
 	}
 
+	protected void pageChange(int newPageIndex) {
+		switch (newPageIndex) {
+		case OptionEditorIndex:
+			spaceTable.refresh();
+			break;
+		case ExampleEditorIndex:
+			updateExample();
+			break;
+		case RuleEditorIndex:
+			ruleTable.refresh();
+		case PlainEditorIndex:
+		}
+		
+		super.pageChange(newPageIndex);
+	}
+	
 	public boolean isDirty() {
 		return editor.isDirty() || 
 		ruleTable.isDirty() || 
