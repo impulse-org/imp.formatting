@@ -137,6 +137,10 @@ public class Parser extends DefaultHandler {
 		} else if (qName.equals("separator")) {
 			tmpSeparator = new Separator();
 			tmpContents = "";
+		} else if (qName.equals("space-option")) {
+			String name = attributes.getValue("name");
+			Integer value = Integer.parseInt(attributes.getValue("value"));
+			spec.setSpaceOption(name, value);
 		}
 	}
 
@@ -171,7 +175,7 @@ public class Parser extends DefaultHandler {
 		} else if (qName.equals("separator")) {
 			tmpSeparator.setLabel(tmpContents);
 			spec.addSeparator(tmpSeparator);
-		}
+		} 
 		
 	}
 

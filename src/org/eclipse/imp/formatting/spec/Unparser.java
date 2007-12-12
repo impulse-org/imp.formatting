@@ -79,11 +79,15 @@ public class Unparser {
 		Element rules = dom.createElement("rules");
 		addRules(spec.ruleIterator(), rules);
 		
+		Element options = dom.createElement("space-options");
+		addOptions(spec, options);
+		
 		Element example = dom.createElement("example");
 		example.setTextContent(spec.getExample());
 		
 		root.appendChild(language);
 		root.appendChild(rules);
+		root.appendChild(options);
 		root.appendChild(example);
 	}
 
@@ -108,5 +112,17 @@ public class Unparser {
 			}
 		}
 	}
-
+	
+	private void addOptions(Specification spec, Element options) {
+		Iterator<String> names = spec.getSpaceOptions();
+		
+		while (names.hasNext()) {
+			String name = names.next();
+			Integer value = spec.getSpaceOption(name);
+			Element elem = dom.createElement("space-option");
+		    elem.setAttribute("name", name);
+		    elem.setAttribute("value", value.toString());
+		    options.appendChild(elem);
+		}
+	}
 }

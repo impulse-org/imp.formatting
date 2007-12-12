@@ -34,11 +34,14 @@ public class Transformer {
 
 	private Specification spec;
 	
+	private SpaceOptionBinder binder;
+	
 	public Transformer(Specification spec, IASTAdapter adapter) {
 		this.adapter = adapter;
 		this.matcher = new Matcher(adapter);
 		this.builder = new BoxStringBuilder(adapter);
 		this.boxes = new BoxEnvironment();
+		this.binder = new SpaceOptionBinder(spec);
 		this.spec = spec;
 		this.ruleMap = new HashMap<String, List<Rule>>();
 	}
@@ -94,8 +97,12 @@ public class Transformer {
 		transform(source, ast);
 		String box = boxes.get(ast);
 		boxes.clear();
+		
+		box = binder.bind(box);
 		return "V vs=2 ["+box+"]";
 	}
+	
+
 
 	/**
 	 * This method associates a box expression in String format with every AST

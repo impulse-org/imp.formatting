@@ -71,6 +71,8 @@ public class Editor extends MultiPageEditorPart implements
 
 	private static final int ExampleEditorIndex = 2;
 
+	private static final int OptionEditorIndex = 3;
+	
 	protected TextEditor editor;
 
 	protected Text example;
@@ -82,6 +84,10 @@ public class Editor extends MultiPageEditorPart implements
 	private Parser parser;
 
 	private RuleTable ruleTable;
+
+	private SpaceOptionTable spaceTable;
+
+	
 
 	public Editor() {
 		super();
@@ -155,11 +161,31 @@ public class Editor extends MultiPageEditorPart implements
 		
 		createRuleEditor();
 		createExampleViewer();
+		createOptionEditor();
 		
 		ruleTable.setModel(model);
+		spaceTable.setModel(model);
 		updateExample();
-
+		
 		exampleModified = false;
+	}
+
+	private void createOptionEditor() {
+		spaceTable = new SpaceOptionTable(model);
+		spaceTable.addPropertyListener(new IPropertyListener() {
+			public void propertyChanged(Object source, int propId) {
+				firePropertyChange(PROP_DIRTY);
+			}
+		});
+		
+		try {
+			addPage(OptionEditorIndex, spaceTable, getEditorInput());
+			setPageText(OptionEditorIndex, spaceTable.getTitle());
+			
+		} catch (PartInitException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private void createRuleEditor() {
@@ -267,6 +293,7 @@ public class Editor extends MultiPageEditorPart implements
 			updateExample();
 			
 			ruleTable.refresh();
+			spaceTable.refresh();
 			
 			exampleModified = false;
 			firePropertyChange(PROP_DIRTY);
@@ -274,6 +301,7 @@ public class Editor extends MultiPageEditorPart implements
 			editor.doSave(monitor);
 			updateModelFromFile(getDocument());
 			ruleTable.setModel(model);
+			spaceTable.setModel(model);
 			updateExample();
 		}
 	}
@@ -327,7 +355,10 @@ public class Editor extends MultiPageEditorPart implements
 	}
 
 	public boolean isDirty() {
-		return editor.isDirty() || ruleTable.isDirty() || exampleModified;
+		return editor.isDirty() || 
+		ruleTable.isDirty() || 
+		spaceTable.isDirty() || 
+		exampleModified;
 	}
 
 	public void newRule() {
@@ -357,4 +388,13 @@ public class Editor extends MultiPageEditorPart implements
 	public void moveDown() {
 		ruleTable.move(1);
 	}
+
+	public void addOption() {
+		spaceTable.newOption();
+	}
+
+	public void deleteOption() {
+		spaceTable.deleteOption();
+	}
+	
 }

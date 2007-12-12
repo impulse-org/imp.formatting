@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.xml.transform.Transformer;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.box.builders.BoxException;
 import org.eclipse.imp.box.builders.BoxFactory;
@@ -13,6 +15,7 @@ import org.eclipse.imp.formatting.spec.Item;
 import org.eclipse.imp.formatting.spec.Parser;
 import org.eclipse.imp.formatting.spec.Rule;
 import org.eclipse.imp.formatting.spec.Separator;
+import org.eclipse.imp.formatting.spec.SpaceOptionBinder;
 import org.eclipse.imp.formatting.spec.Specification;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
@@ -441,6 +444,8 @@ public class RuleTable implements IEditorPart {
 	private String getFormattedBox(String boxString) {
 		try {
 			if (boxString != null && boxString.length() > 0) {
+				SpaceOptionBinder binder = new SpaceOptionBinder(model);
+				boxString = binder.bind(boxString);
 				return BoxFactory.box2text(boxString);
 			} else {
 				return "";

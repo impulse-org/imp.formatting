@@ -144,6 +144,24 @@ public class Contributor extends EditorActionBarContributor {
 				}
 			}
 		});
+		manager.add(new Action("New option") {
+			public void run() {
+				IEditorPart editor = getPage().getActiveEditor();
+				if (editor instanceof Editor) {
+					Editor e = (Editor) editor;
+					e.addOption();
+				}
+			}
+		});
+		manager.add(new Action("Delete option") {
+			public void run() {
+				IEditorPart editor = getPage().getActiveEditor();
+				if (editor instanceof Editor) {
+					Editor e = (Editor) editor;
+					e.deleteOption();
+				}
+			}
+		});
 // Disabled because Box formatter is not a part of The Meta-Environment yet
 //		manager.add(new Action("Format rule") {
 //			public void run() {

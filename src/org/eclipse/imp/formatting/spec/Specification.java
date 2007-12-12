@@ -1,8 +1,10 @@
 package org.eclipse.imp.formatting.spec;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A formatting specification contains rules that map Ast's of a source language
@@ -15,6 +17,7 @@ import java.util.List;
 public class Specification {
 	private String language;
 	private List<Item> items;
+	private Map<String, Integer> spaceOptions;
 	private String example;
 	private Object exampleAst;
 	private Parser parser;
@@ -26,10 +29,27 @@ public class Specification {
 	
 	public Specification(Parser parser) {
 		this.items = new LinkedList<Item>();
+		this.spaceOptions = new HashMap<String,Integer>();
 		this.example = "";
 		this.parser = parser;
 	}
+	
+	public void setSpaceOption(String key, int value) {
+		spaceOptions.put(key, value);
+	}
+	
+	public int getSpaceOption(String key) {
+		return spaceOptions.get(key);
+	}
+	
+	public void removeSpaceOption(String key) {
+		spaceOptions.remove(key);
+	}
 
+	public Iterator<String> getSpaceOptions() {
+		return spaceOptions.keySet().iterator();
+	}
+	
 	public Parser getParser() {
 		return parser;
 	}
