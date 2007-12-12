@@ -398,7 +398,7 @@ public class RuleTable implements IEditorPart {
 			c.pack();
 		}
 	}
-
+	
 	public void setDirty(boolean b) {
 		if (dirty != b) {
 		  dirty = b;

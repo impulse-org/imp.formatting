@@ -4,15 +4,16 @@ import java.io.IOException;
 
 import lpg.runtime.IMessageHandler;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.box.builders.BoxFactory;
-import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.formatting.spec.ExtensionPointBinder;
 import org.eclipse.imp.formatting.spec.ParseException;
 import org.eclipse.imp.formatting.spec.Parser;
@@ -23,13 +24,12 @@ import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
-import org.eclipse.jface.dialogs.ErrorDialog;
-import org.eclipse.jface.text.IDocument;
+import org.eclipse.imp.utils.StreamUtils;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -46,7 +46,6 @@ import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.MultiPageEditorPart;
-import org.eclipse.ui.texteditor.IDocumentProvider;
 
 /**
  * This is the start of a prototype generic formatting tool for IMP.
@@ -67,13 +66,11 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 public class Editor extends MultiPageEditorPart implements
 		IResourceChangeListener {
 
-	private static final int PlainEditorIndex = 0; // must be 0
+	private static final int RuleEditorIndex = 0;
 
-	private static final int RuleEditorIndex = 1;
+	private static final int ExampleEditorIndex = 1;
 
-	private static final int ExampleEditorIndex = 2;
-
-	private static final int OptionEditorIndex = 3;
+	private static final int OptionEditorIndex = 2;
 	
 	protected TextEditor editor;
 
@@ -89,7 +86,7 @@ public class Editor extends MultiPageEditorPart implements
 
 	private SpaceOptionTable spaceTable;
 
-	
+	private ModifyListener exampleModifier;
 
 	public Editor() {
 		super();
@@ -101,24 +98,6 @@ public class Editor extends MultiPageEditorPart implements
 		return model;
 	}
 
-	private IDocument createPlainEditor() {
-		try {
-			editor = new TextEditor();
-			
-			addPage(PlainEditorIndex, editor, getEditorInput());
-			setPageText(PlainEditorIndex, "Plain text");
-			setPartName(editor.getTitle());
-			
-			return getDocument();
-			
-		} catch (PartInitException e) {
-			ErrorDialog.openError(getSite().getShell(),
-					"Error creating nested text editor", null, e.getStatus());
-		}
-		
-		return null;
-	}
-
 	public void createExampleViewer() {
 		Composite parent = new Composite(getContainer(), SWT.NONE);
 		parent.setLayout(new FillLayout());
@@ -126,7 +105,7 @@ public class Editor extends MultiPageEditorPart implements
 
 		example.setFont(new Font(example.getDisplay(), "Monospace", 10, 0));
 
-		example.addModifyListener(new ModifyListener() {
+		exampleModifier = new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
 				model.setExample(example.getText());
 				exampleModified = true;
@@ -137,10 +116,16 @@ public class Editor extends MultiPageEditorPart implements
 					model.setExampleAst(ast);
 				}
 			}
+		};
+		example.addModifyListener(exampleModifier);
+
+		example.setToolTipText("Double click to reformat");
+
+		example.addMouseListener(new MouseAdapter() {
+			public void mouseDoubleClick(MouseEvent e) {
+				updateExample();
+			}
 		});
-
-		example.setToolTipText("Example source code");
-
 		addPage(ExampleEditorIndex, parent);
 		setPageText(ExampleEditorIndex, "Example");
 	}
@@ -157,11 +142,13 @@ public class Editor extends MultiPageEditorPart implements
 	}
 
 	protected void createPages() {
-		IDocument input = createPlainEditor();
+		createRuleEditor();
+		IEditorInput input = ruleTable.getEditorInput();
+		
+		setPartName(input.getName());
 		
 		model = updateModelFromFile(input);
-		
-		createRuleEditor();
+			
 		createExampleViewer();
 		createOptionEditor();
 		
@@ -209,14 +196,14 @@ public class Editor extends MultiPageEditorPart implements
 		}
 	}
 
-	private Specification updateModelFromFile(IDocument input) {
+	private Specification updateModelFromFile(IEditorInput input) {
 		try {
 			// TODO bind extension points for this editor too
 			IPath path = ((IFileEditorInput) getEditorInput()).getFile()
 					.getProjectRelativePath();
 
 			// TODO: ooof, what a casting
-			IProject project = ((IFileEditorInput) getEditorInput()).getFile()
+			IProject project = ((IFileEditorInput) input).getFile()
 					.getProject();
 			IPath fullFilePath = project.getLocation().append(path);
 			ISourceProject sp = ModelFactory.open(project);
@@ -233,13 +220,16 @@ public class Editor extends MultiPageEditorPart implements
 				}
 			});
 
-			String editorText = input.get();
+			IFile file = ((IFileEditorInput) input).getFile();
+			String editorText = StreamUtils.readStreamContents(file.getContents());
 			model = parser.parse(editorText);
 			return model;
 		} catch (ParseException e) {
 			System.err.println("error:" + e);
 		} catch (ModelFactory.ModelException e) {
 			System.err.println("model error:" + e);
+		} catch (CoreException e) {
+			System.err.println("file reading error:" + e);
 		}
 
 		return new Specification(parser);
@@ -259,11 +249,13 @@ public class Editor extends MultiPageEditorPart implements
 				Transformer t = new Transformer(model, b.getASTAdapter());
 				String box = t.transformToBox(model.getExample(), model
 						.getExampleAst());
-				String newExample = null;
+				String newExample;
 
 				newExample = BoxFactory.box2text(box);
 
+				example.removeModifyListener(exampleModifier);
 				example.setText(newExample);
+				example.addModifyListener(exampleModifier);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -274,8 +266,6 @@ public class Editor extends MultiPageEditorPart implements
 				// TODO: something useful
 				e.printStackTrace();
 			}
-
-			exampleModified = false;
 		}
 	}
 
@@ -286,25 +276,13 @@ public class Editor extends MultiPageEditorPart implements
 
 	public void doSave(IProgressMonitor monitor) {
 		Unparser u = new Unparser();
-		String newText = u.unparse(model);
+		u.unparse(model);
 
-		getDocument().set(newText);
-		editor.doSave(monitor);
-		updateExample();
-
-		ruleTable.refresh();
 		ruleTable.setDirty(false);
-		
-		spaceTable.refresh();
 		spaceTable.setDirty(false);
-
 		exampleModified = false;
 
 		firePropertyChange(PROP_DIRTY);
-	}
-
-	private IDocument getDocument() {
-		return editor.getDocumentProvider().getDocument(editor.getEditorInput());
 	}
 
 	public void doSaveAs() {
@@ -360,18 +338,15 @@ public class Editor extends MultiPageEditorPart implements
 			updateExample();
 			break;
 		case RuleEditorIndex:
-			ruleTable.refresh();
-		case PlainEditorIndex:
+			// ruleTable.refresh(); too 
+//		case PlainEditorIndex:
 		}
 		
 		super.pageChange(newPageIndex);
 	}
 	
 	public boolean isDirty() {
-		return editor.isDirty() || 
-		ruleTable.isDirty() || 
-		spaceTable.isDirty() || 
-		exampleModified;
+		return ruleTable.isDirty() || spaceTable.isDirty() || exampleModified;
 	}
 
 	public void newRule() {
