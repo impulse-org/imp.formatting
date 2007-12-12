@@ -157,15 +157,15 @@ public class RuleTable implements IEditorPart {
 		ruleTable.setLinesVisible(true);
 		ruleTable.setHeaderVisible(true);
 
-		TableColumn status = new TableColumn(ruleTable, SWT.NONE);
+		TableColumn status = new TableColumn(ruleTable, SWT.BORDER);
 		status.setText("Status");
 		status.setResizable(true);
 
-		TableColumn box = new TableColumn(ruleTable, SWT.NONE);
+		TableColumn box = new TableColumn(ruleTable, SWT.BORDER);
 		box.setText("Box");
 		box.setResizable(true);
 
-		TableColumn preview = new TableColumn(ruleTable, SWT.NONE);
+		TableColumn preview = new TableColumn(ruleTable, SWT.BORDER);
 		preview.setText("Preview");
 		preview.setResizable(true);
 
