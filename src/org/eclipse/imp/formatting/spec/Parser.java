@@ -71,11 +71,14 @@ public class Parser extends DefaultHandler {
 
 	private Separator tmpSeparator;
 
+	private boolean noObjectParsing;
+
 	public Parser(IPath path, ISourceProject project, IMessageHandler handler) throws ModelException {
 		this.path = path;
 		this.spec = new Specification(this);
 		this.project = project;
 		this.handler = handler;
+		this.noObjectParsing = false;
 	}
 	
 	public void setMessageHandler(IMessageHandler handler) {
@@ -93,11 +96,26 @@ public class Parser extends DefaultHandler {
 	public Specification parse(IPath path) throws ParseException,
 			FileNotFoundException {
 		this.path = path;
+		noObjectParsing = false;
 		return parse(new InputSource(new FileReader(path.toOSString())));
 	}
 
 	public Specification parse(String inputString) throws ParseException {
 		// TODO: throw some sensible exception
+		noObjectParsing = false;
+		return parse(new InputSource(new StringReader(inputString)));
+	}
+	
+	/**
+	 * This method will read in the XML, but will not apply prepare
+	 * the specification for direct use as a formatter. The patterns
+	 * will not be parsed. This is useful for the specification editor.
+	 * @param inputString
+	 * @return
+	 * @throws ParseException
+	 */
+	public Specification load(String inputString) throws ParseException {
+		noObjectParsing = true;
 		return parse(new InputSource(new StringReader(inputString)));
 	}
 
@@ -152,14 +170,18 @@ public class Parser extends DefaultHandler {
 		if (qName.equals("rule")) {
 			spec.addRule(tmpRule);
 		} else if (qName.equals("box")) {
-			try {
-				if (tmpRule != null) {
-				  parseBoxAndObject(tmpContents, tmpRule);
+			if (tmpRule != null) {
+				if (noObjectParsing) {
+				  tmpRule.setBoxString(tmpContents);
 				}
-			} catch (ParseException e) {
-				// TODO It is not much of a problem if the box expression does
-				// not parse,
-				// but it has to be reported properly to the user
+				else {
+				  try {
+					parseBoxAndObject(tmpContents, tmpRule);
+				  } catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				  }
+				}
 			}
 		}
 		else if (qName.equals("preview")) {

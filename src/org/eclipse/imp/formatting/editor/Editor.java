@@ -217,7 +217,7 @@ public class Editor extends MultiPageEditorPart implements
 
 			IFile file = ((IFileEditorInput) input).getFile();
 			String editorText = StreamUtils.readStreamContents(file.getContents());
-			model = parser.parse(editorText);
+			model = parser.load(editorText);
 			return model;
 		} catch (ParseException e) {
 			System.err.println("error:" + e);
