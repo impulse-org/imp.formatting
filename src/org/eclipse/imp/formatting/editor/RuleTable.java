@@ -422,6 +422,10 @@ public class RuleTable implements IEditorPart {
 				String formatted;
 				if (recompute) {
 				 formatted = getFormattedBox(boxString);
+				 
+				 if (formatted != null && formatted.length() > 0) {
+				   rule.setPatternString(formatted);
+				 }
 				}
 				else {
 				  formatted = rule.getPatternString();
