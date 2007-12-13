@@ -130,6 +130,9 @@ public class Parser extends DefaultHandler {
 			tmpRule = new Rule();
 		} else if (qName.equals("box")) {
 			tmpContents = "";
+		}
+	    else if (qName.equals("preview")) {
+			tmpContents = "";
 		} else if (qName.equals("example")) {
 			tmpContents = "";
 		} else if (qName.equals("language")) {
@@ -157,6 +160,11 @@ public class Parser extends DefaultHandler {
 				// TODO It is not much of a problem if the box expression does
 				// not parse,
 				// but it has to be reported properly to the user
+			}
+		}
+		else if (qName.equals("preview")) {
+			if (tmpRule != null) {
+				tmpRule.setPatternString(tmpContents);
 			}
 		} else if (qName.equals("example")) {
 			spec.setExample(tmpContents);

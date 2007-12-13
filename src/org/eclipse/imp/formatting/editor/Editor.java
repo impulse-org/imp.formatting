@@ -1,6 +1,8 @@
 package org.eclipse.imp.formatting.editor;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import lpg.runtime.IMessageHandler;
 
@@ -118,14 +120,7 @@ public class Editor extends MultiPageEditorPart implements
 			}
 		};
 		example.addModifyListener(exampleModifier);
-
-		example.setToolTipText("Double click to reformat");
-
-		example.addMouseListener(new MouseAdapter() {
-			public void mouseDoubleClick(MouseEvent e) {
-				updateExample();
-			}
-		});
+		
 		addPage(ExampleEditorIndex, parent);
 		setPageText(ExampleEditorIndex, "Example");
 	}
@@ -275,21 +270,30 @@ public class Editor extends MultiPageEditorPart implements
 	}
 
 	public void doSave(IProgressMonitor monitor) {
-		Unparser u = new Unparser();
-		u.unparse(model);
+		try {
+			Unparser u = new Unparser();
+			String contents = u.unparse(model);
+			
+			IFile file = ((FileEditorInput) getEditorInput()).getFile();
+			InputStream s = new ByteArrayInputStream(contents.getBytes());
+			file.setContents(s, 0, monitor);
+			
+			ruleTable.setDirty(false);
+			spaceTable.setDirty(false);
+			exampleModified = false;
 
-		ruleTable.setDirty(false);
-		spaceTable.setDirty(false);
-		exampleModified = false;
-
-		firePropertyChange(PROP_DIRTY);
+			firePropertyChange(PROP_DIRTY);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void doSaveAs() {
-		IEditorPart editor = getEditor(0);
-		editor.doSaveAs();
-		setPageText(0, editor.getTitle());
-		setInput(editor.getEditorInput());
+		// not allowed
+	}
+	
+	public boolean isSaveAsAllowed() {
+		return false;
 	}
 
 	public void gotoMarker(IMarker marker) {
@@ -303,10 +307,6 @@ public class Editor extends MultiPageEditorPart implements
 			throw new PartInitException(
 					"Invalid Input: Must be IFileEditorInput");
 		super.init(site, editorInput);
-	}
-
-	public boolean isSaveAsAllowed() {
-		return true;
 	}
 
 	public void resourceChanged(final IResourceChangeEvent event) {

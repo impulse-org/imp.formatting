@@ -101,6 +101,9 @@ public class Unparser {
 				Element box = dom.createElement("box");
 				elem.appendChild(box);
 				box.setTextContent(rule.getBoxString());
+				Element preview = dom.createElement("preview");
+				elem.appendChild(preview);
+				preview.setTextContent(rule.getPatternString());
 				rules.appendChild(elem);
 			}
 			else if (item instanceof Separator) {

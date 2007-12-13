@@ -359,7 +359,7 @@ public class RuleTable implements IEditorPart {
 			Rule rule = (Rule) tableEditor.getItem().getData();
 
 			rule.setBoxString(b);
-			updateRuleTableItem(i, b);
+			updateRuleTableItem(i, rule, true);
 			setDirty(true);
 		}
 	}
@@ -388,7 +388,7 @@ public class RuleTable implements IEditorPart {
 			TableItem item = new TableItem(ruleTable, SWT.NONE);
 
 			if (i instanceof Rule) {
-				initRuleTableItem((Rule) i, item);
+				initRuleTableItem((Rule) i, item, false);
 			} else if (i instanceof Separator) {
 				initSeparatorTableItem((Separator) i, item);
 			}
@@ -405,20 +405,27 @@ public class RuleTable implements IEditorPart {
 		  firePropertyChange(PROP_DIRTY);
 		}
 	}
-
-	private void initRuleTableItem(final Rule rule, TableItem item) {
+	
+	private void initRuleTableItem(final Rule rule, TableItem item, boolean recompute) {
 		item.setData(rule);
-		updateRuleTableItem(item, rule.getBoxString());
+		updateRuleTableItem(item, rule, recompute);
 	}
 
-	private void updateRuleTableItem(TableItem item, String boxString) {
+	private void updateRuleTableItem(TableItem item, Rule rule, boolean recompute) {
+		String boxString = rule.getBoxString();
 		item.setText(EDIT_COLUMN, boxString == null ? "\n" : boxString);
 
 		if (boxString != null) {
 			Parser parser = model.getParser();
 			
 			if (parser.parseBox(boxString) != null) {
-				String formatted = getFormattedBox(boxString);
+				String formatted;
+				if (recompute) {
+				 formatted = getFormattedBox(boxString);
+				}
+				else {
+				  formatted = rule.getPatternString();
+				}
 				item.setText(PREVIEW_COLUMN, formatted);
 				Object ast = parser.parseObject(formatted);
 
@@ -426,7 +433,6 @@ public class RuleTable implements IEditorPart {
 					item.setText(STATUS_COLUMN, "error in preview");
 					item.setData("tooltip", "");
 				} else {
-					Rule rule = (Rule) item.getData();
 					rule.setPatternAst(ast);
 					item.setText(STATUS_COLUMN, "ok");
 					item.setData("tooltip", ast.getClass().getName());
@@ -467,7 +473,7 @@ public class RuleTable implements IEditorPart {
 				model.addRule(cur + diff, r);
 				
 				TableItem item = new TableItem(ruleTable, SWT.NONE, cur + diff);
-				initRuleTableItem(r, item);
+				initRuleTableItem(r, item, false);
 				ruleTable.select(cur + diff);
 				
 				setDirty(true);
@@ -494,14 +500,14 @@ public class RuleTable implements IEditorPart {
 			int i = model.getRules().indexOf(activeItem);
 			model.addRule(i, r);
 			TableItem item = new TableItem(ruleTable, SWT.NONE, i);
-			initRuleTableItem(r, item);
+			initRuleTableItem(r, item, false);
 			ruleTable.select(i);
 			activeItem = r;
 			setDirty(true);
 		} else {
 			model.addRule(r);
 			TableItem item = new TableItem(ruleTable, SWT.NONE);
-			initRuleTableItem(r, item);
+			initRuleTableItem(r, item, false);
 			ruleTable.select(ruleTable.getChildren().length);
 			setDirty(true);
 		}
@@ -558,7 +564,7 @@ public class RuleTable implements IEditorPart {
 				rule.setBoxString(box);
 				int i = model.getRules().indexOf(activeItem);
 				TableItem item = ruleTable.getItem(i);
-				updateRuleTableItem(item, box);
+				updateRuleTableItem(item, rule, true);
 				setDirty(true);
 			}
 		}

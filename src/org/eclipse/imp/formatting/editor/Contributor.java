@@ -162,6 +162,15 @@ public class Contributor extends EditorActionBarContributor {
 				}
 			}
 		});
+		manager.add(new Action("Format") {
+			public void run() {
+				IEditorPart editor = getPage().getActiveEditor();
+				if (editor instanceof Editor) {
+					Editor e = (Editor) editor;
+					e.updateExample();
+				}
+			}
+		});
 // Disabled because Box formatter is not a part of The Meta-Environment yet
 //		manager.add(new Action("Format rule") {
 //			public void run() {
