@@ -429,7 +429,11 @@ public class RuleTable implements IEditorPart {
 				}
 				else {
 				  formatted = rule.getPatternString();
+				  if (formatted == null) {
+					  formatted = "";
+				  }
 				}
+				
 				item.setText(PREVIEW_COLUMN, formatted);
 				Object ast = parser.parseObject(formatted);
 
