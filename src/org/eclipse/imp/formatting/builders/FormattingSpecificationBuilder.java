@@ -1,7 +1,5 @@
 package org.eclipse.imp.formatting.builders;
 
-import lpg.runtime.IMessageHandler;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
@@ -12,6 +10,7 @@ import org.eclipse.imp.formatting.spec.Parser;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
+import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.runtime.PluginBase;
 
 /**
@@ -140,8 +139,9 @@ public class FormattingSpecificationBuilder extends BuilderBase {
 			// TODO bind extension points here to!
 			IPath path = file.getProjectRelativePath();
 			Parser p = new Parser(path, (ISourceProject) file.getProject(), new IMessageHandler() {
-				public void handleMessage(int errorCode, int[] msgLocation, int[] errorLocation, String filename, String[] errorInfo) {
-				}
+                            public void startMessageGroup(String groupName) { }
+			    public void endMessageGroup() { }
+			    public void handleSimpleMessage(String msg, int startOffset, int endOffset, int startCol, int endCol, int startLine, int endLine) { }
 			});
 
 			try {

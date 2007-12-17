@@ -2,8 +2,6 @@ package org.eclipse.imp.formatting;
 
 import java.io.IOException;
 
-import lpg.runtime.IMessageHandler;
-
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.box.builders.BoxException;
@@ -20,6 +18,7 @@ import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.model.ModelFactory.ModelException;
+import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.ISourceFormatter;
 import org.eclipse.imp.xform.pattern.matching.IASTAdapter;

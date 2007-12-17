@@ -4,8 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import lpg.runtime.IMessageHandler;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -26,12 +24,11 @@ import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
+import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.utils.StreamUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -204,15 +201,14 @@ public class Editor extends MultiPageEditorPart implements
 			ISourceProject sp = ModelFactory.open(project);
 
 			parser = new Parser(fullFilePath, sp, new IMessageHandler() {
-				public void handleMessage(int errorCode, int[] msgLocation,
-						int[] errorLocation, String filename, String[] errorInfo) {
-					System.err.println("parse error:");
-					System.err.println("\tline: "
-							+ errorLocation[IMessageHandler.START_LINE_INDEX]);
-					System.err
-							.println("\tcolumn: "
-									+ errorLocation[IMessageHandler.START_COLUMN_INDEX]);
-				}
+			    public void startMessageGroup(String groupName) { }
+			    public void endMessageGroup() { }
+
+			    public void handleSimpleMessage(String msg, int startOffset, int endOffset, int startCol, int endCol, int startLine, int endLine) {
+			        System.err.println("parse error:");
+			        System.err.println("\tline: " + startLine);
+			        System.err.println("\tcolumn: " + startCol);
+			    }
 			});
 
 			IFile file = ((IFileEditorInput) input).getFile();
