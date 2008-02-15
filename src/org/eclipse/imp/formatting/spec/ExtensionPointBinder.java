@@ -11,7 +11,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.imp.formatting.Activator;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.imp.utils.ExtensionPointFactory;
+import org.eclipse.imp.utils.ExtensionFactory;
 import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
 import org.osgi.framework.BundleException;
 
@@ -28,14 +28,14 @@ public class ExtensionPointBinder {
 	public ExtensionPointBinder(Language language) throws Exception {
 		fLanguage = language;
 		
-		adapter = (IASTAdapter) ExtensionPointFactory.createExtensionPointForElement(
+		adapter = (IASTAdapter) ExtensionFactory.createServiceExtensionForPlugin(
 				fLanguage, Activator.kPluginID, "formattingSpecification", "astAdapter");
 
 		if (adapter == null) {
 			throw new Exception("Can not find extension for astAdapter");
 		}
 		
-		objectParser = (IParseController) ExtensionPointFactory.createExtensionPointForElement(
+		objectParser = (IParseController) ExtensionFactory.createServiceExtensionForPlugin(
 				fLanguage, Activator.kPluginID, "formattingSpecification", "parseController");
 
 		
@@ -63,7 +63,7 @@ public class ExtensionPointBinder {
 				IExtensionPoint extensionPoint = Platform
 						.getExtensionRegistry().getExtensionPoint(
 								Activator.kPluginID, "formattingSpecification");
-				URL url = ExtensionPointFactory.getResourceURL(fLanguage.getName(), extensionPoint,
+				URL url = ExtensionFactory.crateResourceURL(fLanguage.getName(), extensionPoint,
 						"file");
 
 				specificationPath = new Path(FileLocator.toFileURL(url)
