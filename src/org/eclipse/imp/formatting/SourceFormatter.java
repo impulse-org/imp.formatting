@@ -20,8 +20,10 @@ import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.parser.MessageHandlerAdapter;
 import org.eclipse.imp.services.ISourceFormatter;
 import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
@@ -37,7 +39,13 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 
 	private Transformer transformer;
 	
-	private IMessageHandler handler;
+	private IMessageHandler handler= new IMessageHandler() {
+            public void startMessageGroup(String groupName) { }
+	    public void endMessageGroup() { }
+	    public void handleSimpleMessage(String msg, int startOffset, int endOffset, int startCol, int endCol, int startLine, int endLine) {
+	        System.out.println(msg);
+            }
+	};
 
 	private Parser parser;
 	
@@ -104,7 +112,8 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 			}
 		}
 		else {
-			Activator.getInstance().writeErrorMsg("Code could not be formatted due to parse error(s)");
+                        MessageDialog.openWarning(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Unable to format", "Code could not be formatted due to parse error(s)");
+//			Activator.getInstance().writeErrorMsg();
 			return content;
 		}
 	}
