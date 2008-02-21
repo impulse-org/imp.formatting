@@ -225,7 +225,7 @@ public class Parser extends DefaultHandler {
 	}
 
 	public IBox parseBox(String boxString) {
-		initializeBoxParser();
+		initializeBoxParser(); // TODO RMF This probably isn't necessary...
 		return (IBox) boxParser.parse(boxString, false, boxParserMonitor);
 	}
 
