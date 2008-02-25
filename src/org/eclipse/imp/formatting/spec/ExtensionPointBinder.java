@@ -63,7 +63,7 @@ public class ExtensionPointBinder {
 				IExtensionPoint extensionPoint = Platform
 						.getExtensionRegistry().getExtensionPoint(
 								Activator.kPluginID, "formattingSpecification");
-				URL url = ExtensionFactory.crateResourceURL(fLanguage.getName(), extensionPoint,
+				URL url = ExtensionFactory.createResourceURL(fLanguage.getName(), extensionPoint,
 						"file");
 
 				specificationPath = new Path(FileLocator.toFileURL(url)
