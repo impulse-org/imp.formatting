@@ -20,7 +20,6 @@ import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.imp.parser.MessageHandlerAdapter;
 import org.eclipse.imp.services.ISourceFormatter;
 import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -43,7 +42,7 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
             public void startMessageGroup(String groupName) { }
 	    public void endMessageGroup() { }
 	    public void handleSimpleMessage(String msg, int startOffset, int endOffset, int startCol, int endCol, int startLine, int endLine) {
-	        System.out.println(msg);
+	        Activator.getInstance().writeErrorMsg(msg + "@" + startOffset + "-" + endOffset);
             }
 	};
 
