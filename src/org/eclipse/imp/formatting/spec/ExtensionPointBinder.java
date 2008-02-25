@@ -11,8 +11,8 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.imp.formatting.Activator;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.services.IASTAdapter;
 import org.eclipse.imp.utils.ExtensionFactory;
-import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
 import org.osgi.framework.BundleException;
 
 public class ExtensionPointBinder {

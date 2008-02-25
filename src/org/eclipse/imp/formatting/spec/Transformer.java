@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
+import org.eclipse.imp.services.IASTAdapter;
 
 /**
  * This class maps an arbitrary AST to a Box term in String form. It works by

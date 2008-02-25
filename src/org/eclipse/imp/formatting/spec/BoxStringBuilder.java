@@ -2,7 +2,7 @@ package org.eclipse.imp.formatting.spec;
 
 import java.util.Iterator;
 
-import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
+import org.eclipse.imp.services.IASTAdapter;
 
 /**
  * I would like to make something that constructs Box AST's directly. For now,

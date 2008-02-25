@@ -1,6 +1,6 @@
 package org.eclipse.imp.formatting.spec;
 
-import org.eclipse.imp.xform.pattern.matching.IASTAdapter;
+import org.eclipse.imp.services.IASTAdapter;
 
 /**
  * This class implements a simple AST pattern matcher. 
