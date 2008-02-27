@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
 <plugin>
-   <extension-point id="formattingSpecification" name="IMP Formatting Specification" schema="schema/formattingSpecification.exsd"/>
+   <extension-point id="org.eclipse.imp.formatting.formattingSpecification" name="IMP Formatting Specification" schema="schema/formattingSpecification.exsd"/>
 
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <wizard
+            class="org.eclipse.imp.formatting.wizards.NewFormattingSpecification"
+            icon="icons/sample.gif"
+            category="org.eclipse.imp.wizards"
+            name="Box-based formatting specification"
+            id="org.eclipse.imp.formatting.wizards.NewFormattingSpecification"/>
+   </extension>
+   
    <extension
          point="org.eclipse.ui.editors">
       <editor
