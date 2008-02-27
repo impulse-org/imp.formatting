@@ -5,16 +5,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.imp.formatting.Activator;
+import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.imp.wizards.ExtensionPointEnabler;
 import org.eclipse.imp.wizards.ExtensionPointWizard;
 import org.eclipse.imp.wizards.ExtensionPointWizardPage;
-import org.eclipse.imp.wizards.WizardPageField;
 import org.eclipse.imp.wizards.WizardUtilities;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 
 public class NewFormattingSpecification extends ExtensionPointWizard {
     private String fSpecFilename;
@@ -53,6 +53,19 @@ public class NewFormattingSpecification extends ExtensionPointWizard {
         WizardUtilities.createFileFromTemplate(
                         fSpecFilename, Activator.kPluginID, "formatter.fsp", "", getProjectSourceLocation(),
                         subs, fProject, new NullProgressMonitor());
+        
+        ExtensionPointEnabler.
+        enable(
+                fProject, RuntimePlugin.IMP_RUNTIME, "formatter", 
+                new String[][] {
+                        { "extension:id", fProject.getName() + ".formatter" },
+                        { "extension:name", fLanguageName + " Formatter" },
+                        { "formatter:class", "org.eclipse.imp.formatting.SourceFormatter" },
+                        { "formatter:language", fLanguageName }   
+                }
+                , false, 
+                getPluginDependencies(), 
+                new NullProgressMonitor());
     }
 
     protected Map<String,String> getStandardSubstitutions() {
