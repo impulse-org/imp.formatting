@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -32,15 +31,22 @@ public class NewFormattingSpecification extends ExtensionPointWizard {
     }
     
     private class NewFormattingSpecificationWizardPage extends ExtensionPointWizardPage {
-        // TODO: add validator for file attribute which should always end in .fsp
         public NewFormattingSpecificationWizardPage(ExtensionPointWizard owner) {
             super(owner, Activator.kPluginID, "formattingSpecification");
         }
     }
     
+    @Override
+    public boolean canFinish() {
+        if (!fileFieldIsValid()) {
+            pages[0].setErrorMessage("File name should end with \".fsp\"");
+            return false;
+        }
+        
+        return super.canFinish();
+    }
     
     protected void collectCodeParms() {
-        super.collectCodeParms();
         fSpecFilename = pages[0].getValue("file");
         fLanguageName = pages[0].getValue("language");
         fProject = pages[0].getProjectBasedOnNameField();
@@ -72,6 +78,11 @@ public class NewFormattingSpecification extends ExtensionPointWizard {
         Map<String,String> result= new HashMap<String,String>();
         result.put("$LANGUAGE_NAME$", fLanguageName);
         return result;
+    }
+
+    private boolean fileFieldIsValid() {
+        final String text = pages[0].getField("file").fText.getText();
+        return text == null || text.length() == 0 || text.endsWith(".fsp");
     }
        
 }
