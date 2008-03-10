@@ -57,7 +57,7 @@ public class NewFormattingSpecification extends ExtensionPointWizard {
         Map<String,String> subs= getStandardSubstitutions();
         
         WizardUtilities.createFileFromTemplate(
-                        fSpecFilename, Activator.kPluginID, "formatter.fsp", "", getProjectSourceLocation(),
+                        fSpecFilename, Activator.kPluginID, "formatter.fsp", "", getProjectSourceLocation(fProject),
                         subs, fProject, new NullProgressMonitor());
         
         ExtensionPointEnabler.
