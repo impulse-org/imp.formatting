@@ -3,6 +3,14 @@
 <plugin>
    <extension-point id="formattingSpecification" name="IMP Formatting Specification" schema="schema/formattingSpecification.exsd"/>
 
+  <extension point="org.eclipse.help.toc">
+    <toc
+          category="IMP"
+          file="doc/toc.xml"
+          primary="true"/>
+  </extension>
+
+
    <extension
          point="org.eclipse.ui.newWizards">
       <wizard
