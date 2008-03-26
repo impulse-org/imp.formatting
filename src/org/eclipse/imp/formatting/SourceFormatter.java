@@ -105,16 +105,18 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 			try {
 				return BoxFactory.box2text(box);
 			} catch (BoxException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				postError("Internal error: " + e.getMessage());
 				return content;
 			}
 		}
 		else {
-                        MessageDialog.openWarning(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Unable to format", "Code could not be formatted due to parse error(s)");
-//			Activator.getInstance().writeErrorMsg();
+			postError("Code could not be formatted due to parse error(s)");
 			return content;
 		}
+	}
+
+	private void postError(String cause) {
+		MessageDialog.openWarning(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Unable to format", cause);
 	}
 
 	public void formatterStops() {
