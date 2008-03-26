@@ -26,6 +26,9 @@ import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.utils.StreamUtils;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IInputValidator;
+import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -213,6 +216,13 @@ public class Editor extends MultiPageEditorPart implements
 
 			IFile file = ((IFileEditorInput) input).getFile();
 			String editorText = StreamUtils.readStreamContents(file.getContents());
+			if (editorText == null || editorText.length() == 0) {
+				String langName= askUserForLanguage();
+				parser.setLanguage(langName);
+				Specification skelSpec= new Specification(langName, parser);
+				this.exampleModified= true; // mark dirty
+				return skelSpec;
+			}
 			model = parser.load(editorText);
 			return model;
 		} catch (ParseException e) {
@@ -224,6 +234,20 @@ public class Editor extends MultiPageEditorPart implements
 		}
 
 		return new Specification(parser);
+	}
+
+	private String askUserForLanguage() {
+		InputDialog d= new InputDialog(ruleTable.getSite().getShell(), "Missing language ID", "Please provide the language ID", "",
+				new IInputValidator() {
+					public String isValid(String newText) {
+						return (newText != null && newText.length() > 0) ? null : "Language ID must be non-empty";
+					}
+				});
+
+		if (d.open() == Dialog.OK) {
+			return d.getValue();
+		}
+		return "";
 	}
 
 	private void reformatExample() {

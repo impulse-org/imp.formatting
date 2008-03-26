@@ -192,20 +192,24 @@ public class Parser extends DefaultHandler {
 			spec.setExampleAst(parseObject(tmpContents));
 		} else if (qName.equals("language")) {
 			spec.setLanguage(tmpContents);
-			
-			try {
-				objectLanguage = LanguageRegistry.findLanguage(tmpContents);
-				ExtensionPointBinder b = new ExtensionPointBinder(objectLanguage);
-				objectParser = b.getObjectParser();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			setLanguage(tmpContents);
 		} else if (qName.equals("separator")) {
 			tmpSeparator.setLabel(tmpContents);
 			spec.addSeparator(tmpSeparator);
 		} 
-		
+	}
+
+	public void setLanguage(String langName) {
+		if (objectParser == null) {
+			try {
+				objectLanguage = LanguageRegistry.findLanguage(langName);
+				ExtensionPointBinder b = new ExtensionPointBinder(objectLanguage);
+				objectParser = b.getObjectParser();
+			} catch (Exception e) {
+				// TODO do something sensible here
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public void parseBoxAndObject(String boxString, Rule rule)
