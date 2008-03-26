@@ -52,4 +52,8 @@ public class Rule implements Item {
 		this.patternString = patternString;
 	}
 
+	@Override
+	public String toString() {
+		return this.patternString + " => " + this.BoxString;
+	}
 }
