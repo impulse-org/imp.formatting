@@ -421,7 +421,12 @@ public class RuleTable implements IEditorPart {
 			if (parser.parseBox(boxString) != null) {
 				String formatted;
 				if (recompute) {
-				 formatted = getFormattedBox(boxString);
+					try {
+						formatted = getFormattedBox(boxString);
+					} catch (BoxException e) {
+						setItemAttribs(item, e.getMessage(), e.getBoxString());
+						return;
+					}
 				 
 				 if (formatted != null && formatted.length() > 0) {
 				   rule.setPatternString(formatted);
@@ -438,31 +443,30 @@ public class RuleTable implements IEditorPart {
 				Object ast = parser.parseObject(formatted);
 
 				if (ast == null) {
-					item.setText(STATUS_COLUMN, "error in preview");
-					item.setData("tooltip", "");
+					setItemAttribs(item, "Syntax error in formatted output", "");
 				} else {
 					rule.setPatternAst(ast);
-					item.setText(STATUS_COLUMN, "ok");
-					item.setData("tooltip", ast.getClass().getName());
+					setItemAttribs(item, "Ok", ast.getClass().getName());
 				}
 			} else {
-				item.setText(STATUS_COLUMN, "error in box");
+				setItemAttribs(item, "Syntax error in box rule", "");
 			}
 		} else {
-			item.setText(STATUS_COLUMN, "no box");
+			setItemAttribs(item, "Empty box rule", "");
 		}
 	}
 
-	private String getFormattedBox(String boxString) {
-		try {
-			if (boxString != null && boxString.length() > 0) {
-				SpaceOptionBinder binder = new SpaceOptionBinder(model);
-				boxString = binder.bind(boxString);
-				return BoxFactory.box2text(boxString);
-			} else {
-				return "";
-			}
-		} catch (BoxException e) {
+	private void setItemAttribs(TableItem item, String text, String tooltip) {
+		item.setText(STATUS_COLUMN, text);
+		item.setData("tooltip", tooltip);
+	}
+
+	private String getFormattedBox(String boxString) throws BoxException {
+		if (boxString != null && boxString.length() > 0) {
+			SpaceOptionBinder binder = new SpaceOptionBinder(model);
+			boxString = binder.bind(boxString);
+			return BoxFactory.box2text(boxString);
+		} else {
 			return "";
 		}
 	}
