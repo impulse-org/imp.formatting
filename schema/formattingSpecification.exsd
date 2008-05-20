@@ -60,7 +60,7 @@
                   
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn="org.eclipse.imp.xform.pattern.matching.IASTAdapter"/>
+                  <meta.attribute kind="java" basedOn="org.eclipse.imp.services.IASTAdapter"/>
                </appInfo>
             </annotation>
          </attribute>
