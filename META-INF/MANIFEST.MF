@@ -11,18 +11,13 @@ Require-Bundle: org.eclipse.ui.workbench.texteditor,
  org.eclipse.ui,
  org.eclipse.core.resources,
  org.eclipse.imp.runtime,
- lpg.runtime,
  org.eclipse.jface.text,
  org.eclipse.jdt.core,
- org.eclipse.platform.source,
  org.eclipse.imp.box,
  org.eclipse.ui.editors,
  org.eclipse.ui.ide,
  org.eclipse.ui.workbench.texteditor,
- org.eclipse.ui.forms,
- org.eclipse.imp.lpg.runtime,
  org.eclipse.compare,
- org.eclipse.imp.metatooling,
- org.eclipse.help
+ org.eclipse.imp.metatooling
 Eclipse-LazyStart: true
 Export-Package: org.eclipse.imp.formatting
