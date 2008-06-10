@@ -27,7 +27,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- * This parser reads .fdl files. These are XML files containing lists of Box
+ * This parser reads .fsp files. These are XML files containing lists of Box
  * expressions and an example program. The fun of parsing .fdl files is that it
  * contains embedded Box, and embedded object language code. We use SAX to parse
  * the XML backbone, we use the org.eclipse.imp.box package to parse the box
