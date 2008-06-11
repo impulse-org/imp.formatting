@@ -135,6 +135,7 @@ public class FormattingSpecificationBuilder extends BuilderBase {
 			// TODO bind extension points here to!
 			IPath path = file.getProjectRelativePath();
 			Parser p = new Parser(path, (ISourceProject) file.getProject(), new IMessageHandler() {
+			    public void clearMessages() { }
                             public void startMessageGroup(String groupName) { }
 			    public void endMessageGroup() { }
 			    public void handleSimpleMessage(String msg, int startOffset, int endOffset, int startCol, int endCol, int startLine, int endLine) { }
