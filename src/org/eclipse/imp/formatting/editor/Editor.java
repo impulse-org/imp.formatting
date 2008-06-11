@@ -204,6 +204,7 @@ public class Editor extends MultiPageEditorPart implements
 			ISourceProject sp = ModelFactory.open(project);
 
 			parser = new Parser(fullFilePath, sp, new IMessageHandler() {
+			    public void clearMessages() { }
 			    public void startMessageGroup(String groupName) { }
 			    public void endMessageGroup() { }
 
