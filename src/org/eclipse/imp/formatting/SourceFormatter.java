@@ -39,6 +39,7 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 	private Transformer transformer;
 	
 	private IMessageHandler handler= new IMessageHandler() {
+	    public void clearMessages() { }
             public void startMessageGroup(String groupName) { }
 	    public void endMessageGroup() { }
 	    public void handleSimpleMessage(String msg, int startOffset, int endOffset, int startCol, int endCol, int startLine, int endLine) {
@@ -55,7 +56,7 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 	private void initialize() {
 		try {
 			UniversalEditor ue = (UniversalEditor) getActiveEditor();
-			fLanguage = LanguageRegistry.findLanguage(ue.getEditorInput());
+			fLanguage = LanguageRegistry.findLanguage(ue.getEditorInput(), ue.getDocumentProvider());
 			ExtensionPointBinder b = new ExtensionPointBinder(fLanguage);
 			
 			adapter = b.getASTAdapter();
