@@ -3,24 +3,13 @@
 <plugin>
    <extension-point id="formattingSpecification" name="IMP Formatting Specification" schema="schema/formattingSpecification.exsd"/>
 
-  <extension point="org.eclipse.help.toc">
+   <extension point="org.eclipse.help.toc">
     <toc
           category="IMP"
           file="doc/toc.xml"
           primary="true"/>
-  </extension>
-
-
-   <extension
-         point="org.eclipse.ui.newWizards">
-      <wizard
-            class="org.eclipse.imp.formatting.wizards.NewFormattingSpecification"
-            icon="icons/sample.gif"
-            category="org.eclipse.imp.wizards"
-            name="Box-based formatting specification"
-            id="org.eclipse.imp.formatting.wizards.NewFormattingSpecification"/>
    </extension>
-   
+
    <extension
          point="org.eclipse.ui.editors">
       <editor
