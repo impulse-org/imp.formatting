@@ -24,6 +24,10 @@
 		<copy todir="${temp.folder}/${plugin.jar.name}.bin" failonerror="true" overwrite="false">
 			<fileset dir="src/" excludes="**/*.java,**/package.htm*"/>
 		</copy>
+        <mkdir dir="${temp.folder}/${plugin.jar.name}.bin/doc"/>
+        <copy todir="${temp.folder}/${plugin.jar.name}.bin/doc" failonerror="true" overwrite="false">
+            <fileset dir="doc/"/>
+        </copy>
 		<mkdir dir="${temp.folder}/${plugin.jar.name}.bin/icons"/>
 		<copy todir="${temp.folder}/${plugin.jar.name}.bin/icons" failonerror="true" overwrite="false">
 			<fileset dir="icons/"/>
