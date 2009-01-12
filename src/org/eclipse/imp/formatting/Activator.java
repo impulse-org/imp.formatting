@@ -66,28 +66,12 @@ public class Activator extends PluginBase {
 //		super.stop(context);
 //	}
 
-	/* Added by Jurgen */
-//	public static Activator getDefault() {
-//		return sPlugin;
-//	}
-	
 	public String getID() {
 		return kPluginID;
 	}
 
-	protected static PreferencesService preferencesService = null;
-
-	public static PreferencesService getPreferencesService() {
-		if (preferencesService == null) {
-			preferencesService = new PreferencesService(ResourcesPlugin
-					.getWorkspace().getRoot().getProject());
-			preferencesService.setLanguageName(kLanguageName);
-			// TODO:  When some actual preferences are created, put
-			// a call to the preferences initializer here
-			// (The IMP New Preferences Support wizard creates such
-			// an initializer.)
-
-		}
-		return preferencesService;
+	@Override
+	public String getLanguageID() {
+	    return kLanguageName;
 	}
 }
