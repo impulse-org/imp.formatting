@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: IMP Generic Formatting Plug-in (Incubation)
 Bundle-SymbolicName: org.eclipse.imp.formatting; singleton:=true
-Bundle-Version: 0.1.10
+Bundle-Version: 0.1.11
 Bundle-Activator: org.eclipse.imp.formatting.Activator
 Bundle-Vendor: jurgen.vinju@gmail.com
 Bundle-Localization: plugin
