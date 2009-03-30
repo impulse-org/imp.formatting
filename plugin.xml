@@ -63,6 +63,8 @@
          <action
                label="Enable FormattingSpecification Builder"
                tooltip="Enable the FormattingSpecification builder for this project"
+               menubarPath="org.eclipse.imp.metatooling.projectContextMenu/group1"
+               icon="icons/builderEnable.gif"
                class="org.eclipse.imp.formatting.actions.EnableNature"
                id="FormattingSpecification.imp.actions.enableNatureAction">
          </action>
