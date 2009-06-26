@@ -4,6 +4,8 @@ Bundle-Name: IMP Generic Formatting Plug-in (Incubation)
 Bundle-SymbolicName: org.eclipse.imp.formatting; singleton:=true
 Bundle-Version: 0.1.14
 Bundle-Activator: org.eclipse.imp.formatting.Activator
+Bundle-ActivationPolicy: lazy
+Eclipse-LazyStart: true
 Bundle-Vendor: jurgen.vinju@gmail.com
 Require-Bundle: org.eclipse.ui.workbench.texteditor,
  org.eclipse.core.runtime,
@@ -17,6 +19,5 @@ Require-Bundle: org.eclipse.ui.workbench.texteditor,
  org.eclipse.ui.ide,
  org.eclipse.ui.workbench.texteditor,
  org.eclipse.compare
-Eclipse-LazyStart: true
 Export-Package: org.eclipse.imp.formatting
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
