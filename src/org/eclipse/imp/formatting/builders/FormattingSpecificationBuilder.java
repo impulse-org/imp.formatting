@@ -12,7 +12,7 @@
 
 package org.eclipse.imp.formatting.builders;
 
-import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -26,6 +26,7 @@ import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.runtime.PluginBase;
+import org.eclipse.imp.utils.NullMessageHandler;
 
 /**
  * @author
@@ -146,12 +147,7 @@ public class FormattingSpecificationBuilder extends BuilderBase {
 		try {
 			// TODO bind extension points here to!
 			IPath path = file.getProjectRelativePath();
-			Parser p = new Parser(path, (ISourceProject) file.getProject(), new IMessageHandler() {
-			    public void clearMessages() { }
-                            public void startMessageGroup(String groupName) { }
-			    public void endMessageGroup() { }
-			    public void handleSimpleMessage(String msg, int startOffset, int endOffset, int startCol, int endCol, int startLine, int endLine) { }
-			});
+			Parser p = new Parser(path, (ISourceProject) file.getProject(), new NullMessageHandler());
 
 			try {
 				p.parse(path);

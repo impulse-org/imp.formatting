@@ -36,8 +36,8 @@ import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
-import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.utils.StreamUtils;
+import org.eclipse.imp.utils.SystemOutErrMessageHandler;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
@@ -206,26 +206,14 @@ public class Editor extends MultiPageEditorPart implements
 	private Specification updateModelFromFile(IEditorInput input) {
 		try {
 			// TODO bind extension points for this editor too
-			IPath path = ((IFileEditorInput) getEditorInput()).getFile()
-					.getProjectRelativePath();
+			IPath path = ((IFileEditorInput) getEditorInput()).getFile().getProjectRelativePath();
 
 			// TODO: ooof, what a casting
-			IProject project = ((IFileEditorInput) input).getFile()
-					.getProject();
+			IProject project = ((IFileEditorInput) input).getFile().getProject();
 			IPath fullFilePath = project.getLocation().append(path);
 			ISourceProject sp = ModelFactory.open(project);
 
-			parser = new Parser(fullFilePath, sp, new IMessageHandler() {
-			    public void clearMessages() { }
-			    public void startMessageGroup(String groupName) { }
-			    public void endMessageGroup() { }
-
-			    public void handleSimpleMessage(String msg, int startOffset, int endOffset, int startCol, int endCol, int startLine, int endLine) {
-			        System.err.println("parse error:");
-			        System.err.println("\tline: " + startLine);
-			        System.err.println("\tcolumn: " + startCol);
-			    }
-			});
+			parser = new Parser(fullFilePath, sp, new SystemOutErrMessageHandler());
 
 			IFile file = ((IFileEditorInput) input).getFile();
 			String editorText = StreamUtils.readStreamContents(file.getContents());

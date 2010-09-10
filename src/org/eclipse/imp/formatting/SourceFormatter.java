@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Jurgen Vinju (jurgenv@cwi.nl) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.formatting;
@@ -34,6 +33,7 @@ import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IASTAdapter;
 import org.eclipse.imp.services.ISourceFormatter;
+import org.eclipse.imp.utils.LogMessageHandler;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -50,14 +50,7 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 
 	private Transformer transformer;
 	
-	private IMessageHandler handler= new IMessageHandler() {
-	    public void clearMessages() { }
-            public void startMessageGroup(String groupName) { }
-	    public void endMessageGroup() { }
-	    public void handleSimpleMessage(String msg, int startOffset, int endOffset, int startCol, int endCol, int startLine, int endLine) {
-	        Activator.getInstance().writeErrorMsg(msg + "@" + startOffset + "-" + endOffset);
-            }
-	};
+	private IMessageHandler handler= new LogMessageHandler(Activator.getInstance().getLog());
 
 	private Parser parser;
 	
