@@ -15,7 +15,6 @@ import java.io.IOException;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.imp.box.builders.BoxException;
 import org.eclipse.imp.box.builders.BoxFactory;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.formatting.spec.ExtensionPointBinder;
@@ -62,10 +61,10 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 		try {
 			UniversalEditor ue = (UniversalEditor) getActiveEditor();
 			fLanguage = LanguageRegistry.findLanguage(ue.getEditorInput(), ue.getDocumentProvider());
-			ExtensionPointBinder b = new ExtensionPointBinder(fLanguage);
-			
-			adapter = b.getASTAdapter();
-			IPath fsp = b.getSpecificationPath();
+			ExtensionPointBinder binder = new ExtensionPointBinder(fLanguage);
+
+			adapter = binder.getASTAdapter();
+			IPath fsp = binder.getSpecificationPath();
 			parser = new Parser(fsp, getActiveProject(), handler);
 			Specification spec = parser.parse(fsp);
 			transformer = new Transformer(spec, adapter);
@@ -85,14 +84,12 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 	}
 
 	private AbstractTextEditor getActiveEditor() {
-		fActiveEditor = (AbstractTextEditor) PlatformUI.getWorkbench()
-				.getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+		fActiveEditor = (AbstractTextEditor) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 		return fActiveEditor;
 	}
 
 	private ISourceProject getActiveProject() throws ModelException {
-		return ModelFactory.open(extractResource(getActiveEditor())
-				.getProject());
+		return ModelFactory.open(extractResource(getActiveEditor()).getProject());
 	}
 
 	private IResource extractResource(IEditorPart editor) {
@@ -102,15 +99,16 @@ public class SourceFormatter implements ISourceFormatter, ILanguageService {
 		return ((IFileEditorInput) input).getFile();
 	}
 
-	public String format(IParseController ignored, String content,
-			boolean isLineStart, String indentation, int[] positions) {
+	public String format(IParseController ignored, String content, boolean isLineStart, String indentation, int[] positions) {
 		Object ast = parser.parseObject(content);
 
 		if (ast != null) {
 			String box = transformer.transformToBox(content, ast);
+
 			try {
-				return BoxFactory.box2text(box);
-			} catch (BoxException e) {
+			    // TODO RMF Don't just throw away box parsing messages; save and log them using a SavingMessageHandler
+				return BoxFactory.box2Text(box);
+			} catch (Exception e) {
 				postError("Internal error: " + e.getMessage());
 				return content;
 			}
