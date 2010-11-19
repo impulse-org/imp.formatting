@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Jurgen Vinju (jurgenv@cwi.nl) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.formatting.spec;
@@ -25,10 +24,8 @@ import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IASTAdapter;
 import org.eclipse.imp.utils.ExtensionFactory;
-import org.osgi.framework.BundleException;
 
 public class ExtensionPointBinder {
-
 	private Language fLanguage;
 
 	private IParseController objectParser;
@@ -38,7 +35,7 @@ public class ExtensionPointBinder {
 	private IPath specificationPath;
 
 	public ExtensionPointBinder(Language language) throws Exception {
-		fLanguage = language;
+	    fLanguage = language;
 		
 		adapter = (IASTAdapter) ExtensionFactory.createServiceExtensionForPlugin(
 				fLanguage, Activator.kPluginID, "formattingSpecification", "astAdapter");
@@ -54,7 +51,6 @@ public class ExtensionPointBinder {
 		if (objectParser == null) {
 			throw new Exception("Can not find extension for parser");
 		}
-		
 	}
 	
 	public Language getLanguage() {
@@ -72,20 +68,20 @@ public class ExtensionPointBinder {
 	public IPath getSpecificationPath() {
 		if (specificationPath == null) {
 			try {
-				IExtensionPoint extensionPoint = Platform
-						.getExtensionRegistry().getExtensionPoint(
+				IExtensionPoint extensionPoint = Platform.getExtensionRegistry().getExtensionPoint(
 								Activator.kPluginID, "formattingSpecification");
-				URL url = ExtensionFactory.createResourceURL(fLanguage.getName(), extensionPoint,
-						"file");
+				URL url = ExtensionFactory.createResourceURL(fLanguage.getName(), extensionPoint, "file");
 
-				specificationPath = new Path(FileLocator.toFileURL(url)
-						.getPath());
+				specificationPath = new Path(FileLocator.toFileURL(url).getPath());
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-
 		return specificationPath;
+	}
+
+	public void dispose() {
+	    // uninstall bundle
 	}
 }
